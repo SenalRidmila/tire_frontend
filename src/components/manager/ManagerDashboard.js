@@ -5,6 +5,8 @@ import axios from 'axios';
 import './ManagerDashboard.css';
 import '../RequestForm.css';
 
+const BASE_URL = process.env.REACT_APP_API_URL;
+
 function ManagerDashboard() {
   const [requests, setRequests] = useState([]);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -26,7 +28,7 @@ function ManagerDashboard() {
   
   const fetchRequests = async () => {
     try {
-      const response = await axios.get('http://localhost:8080/api/tire-requests');
+      const response = await axios.get(`${BASE_URL}/api/tire-requests`);
       const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
       setRequests(data);
     } catch (error) {
@@ -35,7 +37,7 @@ function ManagerDashboard() {
   };
   const deleteRequest = async (id) => {
   try {
-    await axios.delete(`http://localhost:8080/api/tire-requests/${id}`);
+    await axios.delete(`${BASE_URL}/api/tire-requests/${id}`);
     setRequests(prev => prev.filter(request => request._id !== id));
   } catch (error) {
     console.error('Error deleting request:', error);
@@ -46,7 +48,7 @@ function ManagerDashboard() {
 
   const fetchRequestDetails = async (id) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/tire-requests/${id}`);
+      const response = await axios.get(`${BASE_URL}/api/tire-requests/${id}`);
       console.log(response.data);
     } catch (error) {
       console.error('Error fetching request details:', error);
@@ -55,7 +57,7 @@ function ManagerDashboard() {
 
   const handleApprove = async (id) => {
     try {
-      await axios.post(`http://localhost:8080/api/tire-requests/${id}/approve`);
+      await axios.post(`${BASE_URL}/api/tire-requests/${id}/approve`);
       fetchRequests();
       alert('Request approved successfully');
     } catch (error) {
@@ -67,7 +69,7 @@ function ManagerDashboard() {
   const handleReject = async (id) => {
     if (!rejectionReason) return alert('Please provide a reason for rejection');
     try {
-      await axios.post(`http://localhost:8080/api/tire-requests/${id}/reject`, { reason: rejectionReason });
+      await axios.post(`${BASE_URL}/api/tire-requests/${id}/reject`, { reason: rejectionReason });
       fetchRequests();
       setRejectionReason('');
       setShowRejectModal(false);
@@ -82,7 +84,7 @@ function ManagerDashboard() {
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this request?')) return;
     try {
-      await axios.delete(`http://localhost:8080/api/tire-requests/${id}`);
+      await axios.delete(`${BASE_URL}/api/tire-requests/${id}`);
       fetchRequests();
       alert('Request deleted successfully');
     } catch (error) {
@@ -218,9 +220,9 @@ function ManagerDashboard() {
                   <div className="photos-container">
                     {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, i) => (
                       <img key={i}
-                        src={`http://localhost:8080${url}`}
+                        src={`${BASE_URL}${url}`}
                         className="table-photo"
-                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(p => `http://localhost:8080${p}`), i)}
+                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(p => `${BASE_URL}${p}`), i)}
                         alt={`Tire ${i + 1}`}
                       />
                     )) : <span>No photos</span>}
@@ -293,10 +295,10 @@ function ManagerDashboard() {
                 {selectedRequest.tirePhotoUrls.map((u, i) => (
                   <img
                     key={i}
-                    src={`http://localhost:8080${u}`}
+                    src={`${BASE_URL}${u}`}
                     alt={`Tire ${i + 1}`}
                     className="photo-thumbnail"
-                    onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls.map(p => `http://localhost:8080${p}`), i)}
+                    onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls.map(p => `${BASE_URL}${p}`), i)}
                   />
                 ))}
               </div>

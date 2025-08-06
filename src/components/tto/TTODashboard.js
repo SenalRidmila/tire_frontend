@@ -3,7 +3,8 @@ import axios from 'axios';
 import './TTODashboard.css';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = 'http://localhost:8080/api/tire-requests';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 function TTODashboard() {
   const [requests, setRequests] = useState([]);
@@ -330,10 +331,10 @@ function TTODashboard() {
                   {selectedRequest.tirePhotoUrls.map((url, i) => (
                     <img
                       key={i}
-                      src={`http://localhost:8080${url}`}
+                      src={`${url}`}
                       alt={`Tire ${i + 1}`}
                       className="photo-thumbnail"
-                      onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls.map(p => `http://localhost:8080${p}`), i)}
+                      onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls.map(p => `${p}`), i)}
                     />
                   ))}
                 </div>

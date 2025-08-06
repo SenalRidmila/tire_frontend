@@ -3,7 +3,8 @@ import axios from 'axios';
 import './EngineerDashboard.css';
 import { useLocation } from 'react-router-dom';
 
-const API_URL = 'http://localhost:8080/api/tire-requests';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 // "Engineer can act on" statuses (adjust if your API returns different)
 const ENGINEER_PENDING_STATUSES = ['TTO_APPROVED', 'ENGINEER_PENDING', 'MANAGER_APPROVED'];
@@ -144,7 +145,7 @@ function EngineerDashboard() {
   };
 
   const openPhoto = (photos = [], start = 0) => {
-    const urls = photos.map(u => (u.startsWith('http') ? u : `http://localhost:8080${u}`));
+    const urls = photos.map(u => (u.startsWith('http') ? u : `${BASE_URL}${u}`));
     setPhotoModal({ show: true, photos: urls, currentIndex: start });
   };
   const closePhoto = () => setPhotoModal({ show: false, photos: [], currentIndex: 0 });
@@ -228,7 +229,7 @@ function EngineerDashboard() {
                         {req.tirePhotoUrls.map((u, i) => (
                           <img
                             key={i}
-                            src={`http://localhost:8080${u}`}
+                            src={`${u}`}
                             alt={`Tire ${i + 1}`}
                             className="photo-thumbnail"
                             onClick={() => openPhoto(req.tirePhotoUrls, i)}
@@ -303,7 +304,7 @@ function EngineerDashboard() {
                         {req.tirePhotoUrls.map((u, i) => (
                           <img
                             key={i}
-                            src={`http://localhost:8080${u}`}
+                            src={`${u}`}
                             alt={`Tire ${i + 1}`}
                             className="photo-thumbnail"
                             onClick={() => openPhoto(req.tirePhotoUrls, i)}
@@ -360,7 +361,7 @@ function EngineerDashboard() {
                   {selectedRequest.tirePhotoUrls.map((u, i) => (
                     <img
                       key={i}
-                      src={`http://localhost:8080${u}`}
+                      src={`${u}`}
                       alt={`Tire ${i + 1}`}
                       className="photo-thumbnail"
                       onClick={() => openPhoto(selectedRequest.tirePhotoUrls, i)}

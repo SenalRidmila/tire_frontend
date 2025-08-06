@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './TireOrder.css';
 
-const API_URL = 'http://localhost:8080/api/tire-orders';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-orders`;
 
 const Tooltip = ({ text, children }) => (
   <span className="tooltip-wrapper">

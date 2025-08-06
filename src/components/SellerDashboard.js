@@ -3,7 +3,7 @@ import axios from 'axios';
 import { jsPDF } from 'jspdf';
 import './SellerDashboard.css';
 
-const API_URL = 'http://localhost:8080/api/tire-orders';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-orders`;
 
 const Tooltip = ({ text, children }) => (
   <span className="tooltip-wrapper">

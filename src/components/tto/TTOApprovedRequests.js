@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import '../manager/ManagerDashboard.css'; // Reuse existing styles
+import './TTODashboard.css';
 
-const API_URL = 'http://localhost:8080/api/tire-requests';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
+const BASE_URL = process.env.REACT_APP_API_URL;
 
 function TTOApprovedRequests() {
   const [requests, setRequests] = useState([]);
@@ -38,7 +39,7 @@ function TTOApprovedRequests() {
   const openPhotoModal = (photos, startIndex = 0) => {
     setPhotoModal({
       show: true,
-      photos: photos.map(url => `http://localhost:8080${url}`),
+      photos: photos.map(url => `${url}`),
       currentIndex: startIndex
     });
   };
@@ -114,7 +115,7 @@ function TTOApprovedRequests() {
                           req.tirePhotoUrls.map((photoUrl, index) => (
                             <img
                               key={index}
-                              src={`http://localhost:8080${photoUrl}`}
+                              src={`${photoUrl}`}
                               alt={`Tire ${index + 1}`}
                               className="table-photo"
                               onClick={() => openPhotoModal(req.tirePhotoUrls, index)}

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequestForm.css';
 
-const API_URL = 'http://localhost:8080/api/tire-requests';
+const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
 
 function RequestForm() {
   const [formData, setFormData] = useState({
@@ -274,7 +274,7 @@ function RequestForm() {
     });
     setEditingId(req.id);
     if (req.tirePhotoUrls?.length > 0) {
-      setPreviewUrls(req.tirePhotoUrls.map(url => `http://localhost:8080${url}`));
+      setPreviewUrls(req.tirePhotoUrls.map(url => `${url}`));
     } else {
       setPreviewUrls([]);
     }
@@ -335,10 +335,10 @@ function RequestForm() {
                     {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, idx) => (
                       <img
                         key={idx}
-                        src={`http://localhost:8080${url}`}
+                        src={`${url}`}
                         alt={`Tire ${idx + 1}`}
                         className="table-photo"
-                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(url => `http://localhost:8080${url}`), idx)}
+                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(url => `${url}`), idx)}
                         title="Click to view full size"
                       />
                     )) : <span>No photos</span>}
