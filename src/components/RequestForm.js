@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequestForm.css';
 
-const API_URL = 'https://spirited-sparkle-production.up.railway.app/api/tire-requests';
-const BASE_URL = 'https://spirited-sparkle-production.up.railway.app';
+const API_URL = '/api/tire-requests'; // Using Vercel proxy to avoid CORS
+const BASE_URL = ''; // Using relative paths through Vercel proxy
 
 function RequestForm() {
   const [formData, setFormData] = useState({
@@ -40,12 +40,10 @@ function RequestForm() {
 
   const fetchRequests = async () => {
     try {
-      // Try multiple possible endpoints on the Railway backend
+      // Try proxy endpoints (no CORS issues)
       const possibleEndpoints = [
-        API_URL, // https://spirited-sparkle-production.up.railway.app/api/tire-requests
-        'https://spirited-sparkle-production.up.railway.app/api/requests',
-        'https://spirited-sparkle-production.up.railway.app/tire-requests',
-        'https://spirited-sparkle-production.up.railway.app/requests'
+        API_URL, // /api/tire-requests (proxied to Railway)
+        '/api/requests', // Alternative endpoint
       ];
       
       let response = null;
@@ -53,7 +51,7 @@ function RequestForm() {
       
       for (const endpoint of possibleEndpoints) {
         try {
-          console.log(`🔍 Trying Railway endpoint: ${endpoint}`);
+          console.log(`🔍 Trying proxied endpoint: ${endpoint}`);
           response = await axios.get(endpoint);
           
           // Check if response is actually JSON data and not HTML
@@ -65,12 +63,12 @@ function RequestForm() {
             console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
             continue;
           } else if (response.data && Array.isArray(response.data)) {
-            console.log(`✅ Success with Railway endpoint: ${endpoint}`, response.data);
+            console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
             break;
           } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
             // Handle case where data might be array-like object
-            console.log(`✅ Success with Railway endpoint: ${endpoint}`, response.data);
+            console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
             break;
           } else {
@@ -78,7 +76,7 @@ function RequestForm() {
             continue;
           }
         } catch (endpointError) {
-          console.log(`❌ Failed Railway endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
+          console.log(`❌ Failed proxied endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
           continue;
         }
       }
@@ -98,9 +96,9 @@ function RequestForm() {
         
         const data = requestsData.map(req => ({ ...req, id: req._id || req.id }));
         setRequests(data);
-        console.log('📡 Railway API data loaded successfully:', data.length, 'requests');
+        console.log('📡 Proxied API data loaded successfully:', data.length, 'requests');
       } else {
-        console.warn('🔄 All Railway API endpoints failed or returned invalid data, using empty array');
+        console.warn('🔄 All proxied API endpoints failed or returned invalid data, using empty array');
         setRequests([]);
       }
     } catch (error) {
