@@ -416,7 +416,8 @@ function RequestForm() {
   const sendManagerNotification = async (requestData) => {
     try {
       const managerEmail = 'kaushalya@slt.lk'; // Manager email
-      const dashboardLink = `${window.location.origin}/manager?requestId=${requestData.id}`;
+      // Use production Vercel URL instead of localhost
+      const dashboardLink = `https://tire-frontend.vercel.app/manager?requestId=${requestData.id}`;
       
       const emailData = {
         to: managerEmail,
