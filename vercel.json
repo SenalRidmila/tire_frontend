@@ -5,6 +5,10 @@
       "destination": "https://tirebackend-production.up.railway.app/api/auth/$1"
     },
     { 
+      "source": "/api/employees/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/employees/$1"
+    },
+    { 
       "source": "/api/tire-requests/(.*)", 
       "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
     },

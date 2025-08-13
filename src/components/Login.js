@@ -25,14 +25,38 @@ function Login() {
     setError('');
 
     try {
-      // Try authentication with backend
-      const response = await axios.post('/api/auth/login', {
-        userId: formData.userId,
-        password: formData.password
-      });
+      // Try authentication with backend employee collection
+      const possibleEndpoints = [
+        '/api/auth/login', // Primary auth endpoint
+        '/api/employees/login', // Employee-specific endpoint
+        '/api/auth/employee' // Alternative employee auth
+      ];
+      
+      let response = null;
+      let authSuccess = false;
+      
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log(`🔍 Trying authentication endpoint: ${endpoint}`);
+          response = await axios.post(endpoint, {
+            userId: formData.userId,
+            password: formData.password,
+            employeeId: formData.userId // Some backends might expect employeeId field
+          });
+          
+          if (response.data && (response.data.user || response.data.employee)) {
+            console.log(`✅ Authentication successful with: ${endpoint}`);
+            authSuccess = true;
+            break;
+          }
+        } catch (endpointError) {
+          console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
+          continue;
+        }
+      }
 
-      if (response.data && response.data.user) {
-        const user = response.data.user;
+      if (authSuccess && response && (response.data.user || response.data.employee)) {
+        const user = response.data.user || response.data.employee;
         
         // Store user data in localStorage
         localStorage.setItem('currentUser', JSON.stringify(user));
@@ -57,7 +81,8 @@ function Login() {
             navigate('/home');
         }
       } else {
-        setError('Invalid credentials');
+        // No API success, try fallback authentication
+        throw new Error('API authentication failed');
       }
     } catch (error) {
       console.error('Login error:', error);
@@ -95,11 +120,27 @@ function Login() {
 
   // Mock user data for development
   const getMockUser = (userId, password) => {
+    // Primary user credentials
+    if (userId === 'EMP001' && password === 'Kaushalya417#') {
+      return {
+        id: 'EMP001',
+        userId: 'EMP001',
+        name: 'Kaushalya Senalratne',
+        role: 'manager',
+        email: 'kaushalya@slt.lk',
+        department: 'Transport',
+        serviceNo: 'EMP001'
+      };
+    }
+
+    // Additional mock users for testing
     const mockUsers = {
       'manager': { id: '1', userId: 'manager', name: 'John Manager', role: 'manager', email: 'manager@slt.lk' },
       'tto': { id: '2', userId: 'tto', name: 'Jane TTO', role: 'tto', email: 'tto@slt.lk' },
       'engineer': { id: '3', userId: 'engineer', name: 'Bob Engineer', role: 'engineer', email: 'engineer@slt.lk' },
-      'admin': { id: '4', userId: 'admin', name: 'Admin User', role: 'manager', email: 'admin@slt.lk' }
+      'admin': { id: '4', userId: 'admin', name: 'Admin User', role: 'manager', email: 'admin@slt.lk' },
+      'emp002': { id: 'EMP002', userId: 'EMP002', name: 'Transport Officer', role: 'tto', email: 'tto@slt.lk' },
+      'emp003': { id: 'EMP003', userId: 'EMP003', name: 'Senior Engineer', role: 'engineer', email: 'engineer@slt.lk' }
     };
 
     return mockUsers[userId.toLowerCase()] || null;
@@ -179,10 +220,13 @@ function Login() {
             padding: '10px',
             borderRadius: '5px'
           }}>
-            <strong>Demo Credentials:</strong><br/>
-            Manager: manager / any password<br/>
-            TTO: tto / any password<br/>
-            Engineer: engineer / any password
+            <strong>Login Credentials:</strong><br/>
+            <span style={{color: '#007bff', fontWeight: 'bold'}}>EMP001 / Kaushalya417#</span> (Manager)<br/>
+            <hr style={{margin: '8px 0'}}/>
+            <strong>Demo Accounts:</strong><br/>
+            manager / any password (Manager)<br/>
+            tto / any password (TTO)<br/>
+            engineer / any password (Engineer)
           </div>
         </div>
 
