@@ -28,6 +28,7 @@ function EngineerDashboard() {
   const [rejectingId, setRejectingId] = useState(null);
 
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
+  const [usingMockData, setUsingMockData] = useState(false);
 
   const rowRefs = useRef({});
 
@@ -36,6 +37,7 @@ function EngineerDashboard() {
     try {
       // Try multiple possible endpoints
       let response;
+      let apiSuccess = false;
       const possibleEndpoints = [
         API_URL, // /api/tire-requests
         API_URL.replace('/tire-requests', '/requests'), // /api/requests
@@ -45,23 +47,31 @@ function EngineerDashboard() {
         `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/requests`
       ];
       
-      let lastError = null;
       for (const endpoint of possibleEndpoints) {
         try {
           console.log(`Trying endpoint: ${endpoint}`);
           response = await axios.get(endpoint);
-          console.log(`Success with endpoint: ${endpoint}`, response.data);
+          console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+          apiSuccess = true;
           break;
         } catch (endpointError) {
-          console.log(`Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
-          lastError = endpointError;
+          console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
           continue;
         }
       }
       
-      if (!response) {
-        console.warn('All API endpoints failed, using mock data for development');
-        // Use mock data when backend is unavailable
+      if (apiSuccess && response) {
+        console.log('📡 API Response:', response.data);
+        setRequests(Array.isArray(response.data) ? response.data : []);
+        setUsingMockData(false);
+        
+        // Debug – see all unique statuses coming from API
+        const unique = [...new Set((response.data || []).map(r => r.status))];
+        console.log('Engineer unique statuses =>', unique);
+      } else {
+        // Always use mock data when API is unavailable
+        console.warn('🔄 All API endpoints failed, loading mock data for testing...');
+        setUsingMockData(true);
         const mockData = [
           {
             id: 'mock-1',
@@ -103,20 +113,37 @@ function EngineerDashboard() {
           }
         ];
         setRequests(mockData);
-        console.log('Using mock data:', mockData);
-        return;
+        setUsingMockData(true);
+        console.log('✅ Mock data loaded:', mockData);
       }
-      
-      console.log('API Response:', response.data); // Debug log
-      setRequests(Array.isArray(response.data) ? response.data : []);
-
-      // Debug – see all unique statuses coming from API
-      const unique = [...new Set((response.data || []).map(r => r.status))];
-      console.log('Engineer unique statuses =>', unique);
     } catch (err) {
-      console.error('Error fetching requests:', err);
-      console.error('All tried endpoints failed');
-      alert('Backend unavailable. Using demo data. Please check Railway deployment.');
+      console.error('💥 Critical error in fetchRequests:', err);
+      
+      // Always provide fallback data in case of any error
+      const fallbackData = [
+        {
+          id: 'fallback-1',
+          vehicleNo: 'DEMO-001',
+          vehicleType: 'Car',
+          vehicleBrand: 'Toyota',
+          vehicleModel: 'Prius',
+          userSection: 'Demo Department',
+          tireSize: '215/60R16',
+          noOfTires: '4',
+          noOfTubes: '0',
+          presentKm: '60000',
+          previousKm: '55000',
+          wearIndicator: 'Yes',
+          wearPattern: 'Even',
+          officerServiceNo: 'DEMO001',
+          status: 'TTO_APPROVED',
+          comments: 'Demo request for testing',
+          tirePhotoUrls: []
+        }
+      ];
+      setRequests(fallbackData);
+      setUsingMockData(true);
+      console.log('🔧 Fallback data loaded due to error');
     }
   };
 
@@ -252,6 +279,20 @@ function EngineerDashboard() {
   return (
     <div className="engineer-dashboard">
       <h2>Engineer Dashboard</h2>
+      
+      {usingMockData && (
+        <div style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffeaa7',
+          borderRadius: '4px',
+          padding: '12px',
+          marginBottom: '20px',
+          color: '#856404'
+        }}>
+          <strong>⚠️ Demo Mode:</strong> Backend unavailable. Showing sample data for testing. 
+          Please check your Railway deployment.
+        </div>
+      )}
 
       {/* ================== Pending table ================== */}
       <section className="table-section">
