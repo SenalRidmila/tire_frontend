@@ -3,8 +3,12 @@ import axios from 'axios';
 import './EngineerDashboard.css';
 import { useLocation } from 'react-router-dom';
 
-const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
-const BASE_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? `${process.env.REACT_APP_API_URL}/api/tire-requests`
+  : '/api/tire-requests';
+const BASE_URL = process.env.NODE_ENV === 'development' 
+  ? process.env.REACT_APP_API_URL 
+  : '';
 
 // "Engineer can act on" statuses (adjust if your API returns different)
 const ENGINEER_PENDING_STATUSES = ['TTO_APPROVED', 'ENGINEER_PENDING', 'MANAGER_APPROVED'];

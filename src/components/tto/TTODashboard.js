@@ -3,8 +3,12 @@ import axios from 'axios';
 import './TTODashboard.css';
 import { useNavigate } from 'react-router-dom';
 
-const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
-const BASE_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? `${process.env.REACT_APP_API_URL}/api/tire-requests`
+  : '/api/tire-requests';
+const BASE_URL = process.env.NODE_ENV === 'development' 
+  ? process.env.REACT_APP_API_URL 
+  : '';
 
 function TTODashboard() {
   const [requests, setRequests] = useState([]);

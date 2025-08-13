@@ -2,8 +2,12 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequestForm.css';
 
-const API_URL = `${process.env.REACT_APP_API_URL}/api/tire-requests`;
-const BASE_URL = process.env.REACT_APP_API_URL;
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? `${process.env.REACT_APP_API_URL}/api/tire-requests`
+  : '/api/tire-requests';
+const BASE_URL = process.env.NODE_ENV === 'development' 
+  ? process.env.REACT_APP_API_URL 
+  : '';
 
 function RequestForm() {
   const [formData, setFormData] = useState({

@@ -1,6 +1,37 @@
 {
   "rewrites": [
+    { 
+      "source": "/api/tire-requests/(.*)", 
+      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-requests/$1"
+    },
+    { 
+      "source": "/api/tire-requests", 
+      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-requests"
+    },
+    { 
+      "source": "/api/tire-orders/(.*)", 
+      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-orders/$1"
+    },
+    { 
+      "source": "/api/tire-orders", 
+      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-orders"
+    },
+    { 
+      "source": "/uploads/(.*)", 
+      "destination": "https://spirited-sparkle-production.up.railway.app/uploads/$1"
+    },
     { "source": "/(.*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
   ],
   "env": {
     "REACT_APP_API_URL": "https://spirited-sparkle-production.up.railway.app"
