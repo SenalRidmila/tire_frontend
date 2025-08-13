@@ -25,6 +25,8 @@ function Login() {
     
     const { userId, password } = formData;
     
+    console.log('Login attempt:', { userId, password }); // Debug log
+    
     // Validate input
     if (!userId.trim() || !password.trim()) {
       setMessage('Please enter both User ID and Password.');
@@ -67,6 +69,7 @@ function Login() {
       }
     } catch (error) {
       console.error('Login error:', error);
+      console.log('Fallback mode activated'); // Debug log
       
       // Fallback: Demo employee collection data (for testing when backend is unavailable)
       const demoEmployees = [
@@ -93,9 +96,13 @@ function Login() {
         }
       ];
       
+      console.log('Checking credentials against:', demoEmployees); // Debug log
+      
       const validEmployee = demoEmployees.find(
         emp => emp.employeeId === userId && emp.password === password
       );
+      
+      console.log('Valid employee found:', validEmployee); // Debug log
       
       if (validEmployee) {
         localStorage.setItem('user', JSON.stringify({
