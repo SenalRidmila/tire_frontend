@@ -47,7 +47,7 @@ function RequestForm() {
       comments: 'Front tires showing wear',
       email: 'transport@company.com',
       status: 'PENDING',
-      tirePhotoUrls: []
+      tirePhotoUrls: ['/images/tire1.jpeg', '/images/tire2.jpeg']
     },
     {
       id: 'mock-2',
@@ -70,7 +70,7 @@ function RequestForm() {
       comments: 'Rear tires need replacement',
       email: 'logistics@company.com',
       status: 'APPROVED',
-      tirePhotoUrls: []
+      tirePhotoUrls: ['/images/tire3.jpeg']
     },
     {
       id: 'mock-3',
@@ -93,7 +93,7 @@ function RequestForm() {
       comments: 'Heavy usage requires new tires',
       email: 'delivery@company.com',
       status: 'REJECTED',
-      tirePhotoUrls: []
+      tirePhotoUrls: ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg']
     }
   ];
 
@@ -436,7 +436,7 @@ function RequestForm() {
     });
     setEditingId(req.id);
     if (req.tirePhotoUrls?.length > 0) {
-      setPreviewUrls(req.tirePhotoUrls.map(url => `${BASE_URL}${url}`));
+      setPreviewUrls(req.tirePhotoUrls.map(url => url.startsWith('http') ? url : `${BASE_URL}${url}`));
     } else {
       setPreviewUrls([]);
     }
@@ -505,11 +505,15 @@ function RequestForm() {
                     {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, idx) => (
                       <img
                         key={idx}
-                        src={`${BASE_URL}${url}`}
+                        src={url.startsWith('http') ? url : `${BASE_URL}${url}`}
                         alt={`Tire ${idx + 1}`}
                         className="table-photo"
-                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(url => `${BASE_URL}${url}`), idx)}
+                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(photoUrl => photoUrl.startsWith('http') ? photoUrl : `${BASE_URL}${photoUrl}`), idx)}
                         title="Click to view full size"
+                        onError={(e) => {
+                          console.warn(`Failed to load image: ${e.target.src}`);
+                          e.target.style.display = 'none';
+                        }}
                       />
                     )) : <span>No photos</span>}
                   </div>
@@ -666,7 +670,11 @@ function RequestForm() {
               alt="Full size"
               style={{ transform: `scale(${photoZoom})` }}
               onLoad={handleImageLoad}
-              onError={handleImageError}
+              onError={(e) => {
+                console.warn(`Failed to load modal image: ${e.target.src}`);
+                setImageLoading(false);
+                alert('Failed to load image. Please check if the image file exists.');
+              }}
             />
             {imageLoading && <div className="image-loading">Loading...</div>}
             <div className="photo-controls">
