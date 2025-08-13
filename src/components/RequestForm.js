@@ -63,15 +63,24 @@ function RequestForm() {
           response = await axios.get(endpoint);
           
           // Check if response is actually JSON data and not HTML
-          if (response.data && typeof response.data === 'object' && !response.data.includes && Array.isArray(response.data)) {
+          if (response.data && typeof response.data === 'string' && (
+            response.data.includes('<!doctype html>') || 
+            response.data.includes('<html') ||
+            response.data.includes('<HTML')
+          )) {
+            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
+            continue;
+          } else if (response.data && Array.isArray(response.data)) {
             console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
             break;
-          } else if (response.data && typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
-            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
-            continue;
+          } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
+            // Handle case where data might be array-like object
+            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+            apiSuccess = true;
+            break;
           } else {
-            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data);
+            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data, response.data);
             continue;
           }
         } catch (endpointError) {
@@ -80,10 +89,22 @@ function RequestForm() {
         }
       }
       
-      if (apiSuccess && response) {
-        const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
+      if (apiSuccess && response && response.data) {
+        // Ensure we have array data before processing
+        let requestsData = [];
+        if (Array.isArray(response.data)) {
+          requestsData = response.data;
+        } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
+          // Convert array-like object to actual array
+          requestsData = Array.from(response.data);
+        } else {
+          console.warn('🔄 Response data is not an array, using empty array');
+          requestsData = [];
+        }
+        
+        const data = requestsData.map(req => ({ ...req, id: req._id || req.id }));
         setRequests(data);
-        console.log('📡 API data loaded successfully');
+        console.log('📡 API data loaded successfully:', data.length, 'requests');
       } else {
         console.warn('🔄 All API endpoints failed or returned invalid data, using empty array');
         setRequests([]);
