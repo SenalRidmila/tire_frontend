@@ -662,9 +662,62 @@ function RequestForm() {
       {photoModal.show && (
         <div className="photo-modal" onClick={closePhotoModal}>
           <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
-            <span className="close" onClick={closePhotoModal}>&times;</span>
-            <div className="photo-counter">{photoModal.currentIndex + 1} / {photoModal.photos.length}</div>
-            <div className="zoom-indicator">Zoom: {Math.round(photoZoom * 100)}%</div>
+            <span className="close" onClick={closePhotoModal} title="Close (Esc)">&times;</span>
+            <div className="photo-counter">
+              {photoModal.currentIndex + 1} / {photoModal.photos.length}
+            </div>
+            <div className="zoom-indicator" title="Use +/- keys or buttons to zoom">
+              Zoom: {Math.round(photoZoom * 100)}%
+            </div>
+            
+            {/* Navigation arrows for touch/click */}
+            {photoModal.photos.length > 1 && (
+              <>
+                <button 
+                  onClick={prevPhoto} 
+                  style={{
+                    position: 'absolute',
+                    left: '20px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '40px',
+                    height: '40px',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    zIndex: 1003
+                  }}
+                  title="Previous photo (← key)"
+                >
+                  ‹
+                </button>
+                <button 
+                  onClick={nextPhoto} 
+                  style={{
+                    position: 'absolute',
+                    right: '20px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'rgba(0, 0, 0, 0.7)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '40px',
+                    height: '40px',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    zIndex: 1003
+                  }}
+                  title="Next photo (→ key)"
+                >
+                  ›
+                </button>
+              </>
+            )}
+            
             <img
               src={photoModal.photos[photoModal.currentIndex]}
               alt="Full size"
@@ -677,18 +730,27 @@ function RequestForm() {
               }}
             />
             {imageLoading && <div className="image-loading">Loading...</div>}
+            
             <div className="photo-controls">
-              <button onClick={zoomOut} type="button">Zoom Out</button>
-              <button onClick={resetZoom} type="button">Reset</button>
-              <button onClick={zoomIn} type="button">Zoom In</button>
+              <button onClick={zoomOut} type="button" title="Zoom out (- key)">Zoom Out</button>
+              <button onClick={resetZoom} type="button" title="Reset zoom (0 key)">Reset</button>
+              <button onClick={zoomIn} type="button" title="Zoom in (+ key)">Zoom In</button>
             </div>
+            
             <div className="photo-navigation">
-              <button onClick={prevPhoto} type="button">Previous</button>
-              <button onClick={downloadPhoto} type="button">Download</button>
-              <button onClick={nextPhoto} type="button">Next</button>
+              {photoModal.photos.length > 1 && (
+                <button onClick={prevPhoto} type="button">Previous</button>
+              )}
+              <button onClick={downloadPhoto} type="button" title="Download image">Download</button>
+              {photoModal.photos.length > 1 && (
+                <button onClick={nextPhoto} type="button">Next</button>
+              )}
             </div>
+            
             <div className="keyboard-shortcuts">
-              <small>Keyboard: ← → Navigate | +/- Zoom | 0 Reset | Esc Close</small>
+              <small>
+                <strong>Keyboard shortcuts:</strong> ← → Navigate | +/- Zoom | 0 Reset | Esc Close
+              </small>
             </div>
           </div>
         </div>
