@@ -44,11 +44,43 @@ function RequestForm() {
 
   const fetchRequests = async () => {
     try {
-      const response = await axios.get(API_URL);
-      const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
-      setRequests(data);
+      // Try multiple possible endpoints
+      const possibleEndpoints = [
+        API_URL, // /api/tire-requests
+        API_URL.replace('/tire-requests', '/requests'), // /api/requests
+        API_URL.replace('/api/tire-requests', '/tire-requests'), // /tire-requests
+        API_URL.replace('/api/tire-requests', '/requests'), // /requests
+        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/api/requests`,
+        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/requests`
+      ];
+      
+      let response = null;
+      let lastError = null;
+      
+      for (const endpoint of possibleEndpoints) {
+        try {
+          console.log(`Trying endpoint: ${endpoint}`);
+          response = await axios.get(endpoint);
+          console.log(`Success with endpoint: ${endpoint}`, response.data);
+          break;
+        } catch (endpointError) {
+          console.log(`Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
+          lastError = endpointError;
+          continue;
+        }
+      }
+      
+      if (response) {
+        const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
+        setRequests(data);
+      } else {
+        console.warn('All API endpoints failed, backend may be unavailable');
+        // Set empty array when backend is unavailable - RequestForm doesn't need mock data
+        setRequests([]);
+      }
     } catch (error) {
       console.error('Error fetching requests:', error);
+      setRequests([]);
     }
   };
 
