@@ -272,6 +272,74 @@ function TTODashboard() {
 
   return (
     <div className="tto-dashboard">
+      {/* Navigation Bar */}
+      <nav style={{ 
+        background: '#2c3e50', 
+        padding: '10px 20px', 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center',
+        color: 'white'
+      }}>
+        <div style={{ display: 'flex', gap: '15px' }}>
+          <button 
+            onClick={() => window.open('https://tire-frontend.vercel.app/home', '_blank')}
+            style={{ 
+              background: '#3498db', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 16px', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🏠 Home
+          </button>
+          <button 
+            onClick={() => window.open('https://tire-frontend.vercel.app/manager', '_blank')}
+            style={{ 
+              background: '#e74c3c', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 16px', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🧑‍💼 Manager Dashboard
+          </button>
+          <button 
+            onClick={() => window.open('https://tire-frontend.vercel.app/engineer-dashboard', '_blank')}
+            style={{ 
+              background: '#e67e22', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 16px', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🔧 Engineer Dashboard
+          </button>
+          <button 
+            onClick={() => window.open('https://tire-frontend.vercel.app/seller-dashboard', '_blank')}
+            style={{ 
+              background: '#8e44ad', 
+              color: 'white', 
+              border: 'none', 
+              padding: '8px 16px', 
+              borderRadius: '4px',
+              cursor: 'pointer'
+            }}
+          >
+            🛒 Seller Dashboard
+          </button>
+        </div>
+        <div>
+          <span>🚛 TTO Dashboard</span>
+        </div>
+      </nav>
+
       <div className="tto-hero" style={{ backgroundImage: `url('/images/tire3.jpeg')` }}>
         <div className="overlay"></div>
         <div className="hero-text">
