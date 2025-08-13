@@ -306,6 +306,7 @@ function RequestForm() {
   };
 
   const openPhotoModal = (photos, startIndex = 0) => {
+    console.log('Opening photo modal with photos:', photos, 'startIndex:', startIndex);
     setPhotoModal({ show: true, photos, currentIndex: startIndex });
     setImageLoading(true);
     setPhotoZoom(1);
@@ -502,20 +503,64 @@ function RequestForm() {
                 <td>{req.status || 'Pending'}</td>
                 <td>
                   <div className="photos-container">
-                    {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, idx) => (
-                      <img
-                        key={idx}
-                        src={url.startsWith('http') ? url : `${BASE_URL}${url}`}
-                        alt={`Tire ${idx + 1}`}
-                        className="table-photo"
-                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(photoUrl => photoUrl.startsWith('http') ? photoUrl : `${BASE_URL}${photoUrl}`), idx)}
-                        title="Click to view full size"
-                        onError={(e) => {
-                          console.warn(`Failed to load image: ${e.target.src}`);
-                          e.target.style.display = 'none';
-                        }}
-                      />
-                    )) : <span>No photos</span>}
+                    {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, idx) => {
+                      // Enhanced URL handling with multiple fallbacks
+                      const getImageUrl = (originalUrl) => {
+                        if (!originalUrl) return null;
+                        
+                        // If already a full HTTP URL, use as is
+                        if (originalUrl.startsWith('http')) return originalUrl;
+                        
+                        // Try different URL patterns
+                        const urlPatterns = [
+                          `${BASE_URL}${originalUrl}`,
+                          `${BASE_URL}/uploads/${originalUrl}`,
+                          `/uploads/${originalUrl}`,
+                          originalUrl.startsWith('/') ? originalUrl : `/${originalUrl}`
+                        ];
+                        
+                        return urlPatterns[0]; // Start with primary pattern
+                      };
+                      
+                      const imageUrl = getImageUrl(url);
+                      if (!imageUrl) return null;
+                      
+                      return (
+                        <img
+                          key={idx}
+                          src={imageUrl}
+                          alt={`Tire ${idx + 1}`}
+                          className="table-photo"
+                          onClick={() => {
+                            // Create enhanced photo URLs for modal
+                            const modalUrls = req.tirePhotoUrls.map(photoUrl => {
+                              if (photoUrl.startsWith('http')) return photoUrl;
+                              return `${BASE_URL}${photoUrl}`;
+                            });
+                            openPhotoModal(modalUrls, idx);
+                          }}
+                          title="Click to view full size"
+                          onError={(e) => {
+                            console.warn(`Failed to load image: ${e.target.src}`);
+                            // Try fallback URLs
+                            const fallbackUrls = [
+                              `${BASE_URL}/uploads/${url}`,
+                              `/uploads/${url}`,
+                              url.startsWith('/') ? url : `/${url}`
+                            ];
+                            
+                            let currentFallback = parseInt(e.target.dataset.fallbackIndex || '0');
+                            if (currentFallback < fallbackUrls.length) {
+                              e.target.dataset.fallbackIndex = currentFallback + 1;
+                              e.target.src = fallbackUrls[currentFallback];
+                            } else {
+                              e.target.style.display = 'none';
+                              e.target.insertAdjacentHTML('afterend', '<span style="color: red; font-size: 12px;">Image not found</span>');
+                            }
+                          }}
+                        />
+                      );
+                    }) : <span>No photos</span>}
                   </div>
                 </td>
                 <td>
@@ -726,7 +771,30 @@ function RequestForm() {
               onError={(e) => {
                 console.warn(`Failed to load modal image: ${e.target.src}`);
                 setImageLoading(false);
-                alert('Failed to load image. Please check if the image file exists.');
+                
+                // Try fallback URLs for modal images
+                const currentUrl = e.target.src;
+                const originalUrl = photoModal.photos[photoModal.currentIndex];
+                
+                if (!e.target.dataset.modalFallbackTried) {
+                  e.target.dataset.modalFallbackTried = 'true';
+                  
+                  // Try different URL patterns
+                  const fallbackUrls = [
+                    originalUrl.includes('/uploads/') ? originalUrl : originalUrl.replace(BASE_URL, `${BASE_URL}/uploads`),
+                    originalUrl.startsWith('http') ? originalUrl : `${BASE_URL}/uploads/${originalUrl}`,
+                    `/uploads/${originalUrl.split('/').pop()}`,
+                    originalUrl
+                  ].filter(url => url !== currentUrl);
+                  
+                  if (fallbackUrls.length > 0) {
+                    console.log(`Trying fallback URL: ${fallbackUrls[0]}`);
+                    e.target.src = fallbackUrls[0];
+                    return;
+                  }
+                }
+                
+                alert('Image could not be loaded. The file may be missing or corrupted.');
               }}
             />
             {imageLoading && <div className="image-loading">Loading...</div>}

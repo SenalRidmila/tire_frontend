@@ -291,29 +291,48 @@ button {
 
 /* Table Photo Styles */
 .table-photo {
-    width: 50px;
-    height: 50px;
+    width: 60px;
+    height: 60px;
     object-fit: cover;
-    border-radius: 8px;
-    margin: 2px;
+    border-radius: 10px;
+    margin: 3px;
     cursor: pointer;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    transition: all 0.3s ease;
     border: 2px solid #e0e0e0;
+    background: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .table-photo:hover {
-    transform: scale(1.2);
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+    transform: scale(1.15);
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.3);
     border-color: #007bff;
-    z-index: 10;
+    z-index: 15;
     position: relative;
+}
+
+/* Loading state for photos */
+.table-photo[data-loading="true"] {
+    opacity: 0.6;
+    background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%);
+    background-size: 10px 10px;
+    animation: loading-stripes 1s linear infinite;
+}
+
+@keyframes loading-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 10px 10px; }
 }
 
 .photos-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 4px;
-    max-width: 120px;
+    gap: 6px;
+    max-width: 140px;
+    justify-content: center;
+    align-items: center;
+    min-height: 70px;
+    padding: 5px;
 }
 
 /* Photo Modal Styles */
