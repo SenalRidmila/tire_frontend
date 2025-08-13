@@ -55,23 +55,11 @@ function App() {
           </PrivateRoute>
         } />
         
-        <Route path="/tto-dashboard" element={
-          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
-            <TTODashboard />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/tto" element={
-          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
-            <TTODashboard />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/engineer-dashboard" element={
-          <PrivateRoute allowedRoles={['engineer']}>
-            <EngineerDashboard />
-          </PrivateRoute>
-        } />
+        {/* Direct access routes - no authentication required */}
+        <Route path="/tto-dashboard" element={<TTODashboard />} />
+        <Route path="/tto" element={<TTODashboard />} />
+        <Route path="/engineer-dashboard" element={<EngineerDashboard />} />
+        <Route path="/seller-dashboard" element={<SellerDashboard vendorEmail="seller.email=slttransportofficer@gmail.com" />} />
 
         <Route path="/request" element={
           <PrivateRoute>
@@ -79,29 +67,10 @@ function App() {
           </PrivateRoute>
         } />
 
-        <Route path="/tto/approved-requests" element={
-          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
-            <TTOApprovedRequests />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/order-tires" element={
-          <PrivateRoute allowedRoles={['tto', 'transport officer', 'manager']}>
-            <TireOrder />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/order-tires/:requestId" element={
-          <PrivateRoute allowedRoles={['tto', 'transport officer', 'manager']}>
-            <TireOrder />
-          </PrivateRoute>
-        } />
-        
-        <Route path="/seller-dashboard" element={
-          <PrivateRoute allowedRoles={['seller']}>
-            <SellerDashboard vendorEmail="seller.email=slttransportofficer@gmail.com" />
-          </PrivateRoute>
-        } />
+        {/* TTO specific routes - direct access */}
+        <Route path="/tto/approved-requests" element={<TTOApprovedRequests />} />
+        <Route path="/order-tires" element={<TireOrder />} />
+        <Route path="/order-tires/:requestId" element={<TireOrder />} />
 
       </Routes>
     </BrowserRouter>
