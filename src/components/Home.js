@@ -1,12 +1,19 @@
 // Home.js
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './Home.css';
 import { useNavigate, Link } from 'react-router-dom';
 
 function Home() {
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    // Get current user from localStorage
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    setCurrentUser(user);
+  }, []);
 
   const toggleDropdown = () => {
     setDropdownOpen(!dropdownOpen);
@@ -17,7 +24,9 @@ function Home() {
   };
 
   const confirmLogout = () => {
-    // Optional: clear auth state or localStorage
+    // Clear authentication data
+    localStorage.removeItem('currentUser');
+    localStorage.removeItem('isAuthenticated');
     navigate('/login');
   };
 
@@ -33,6 +42,28 @@ function Home() {
     navigate('/request');
   };
 
+  const navigateToDashboard = () => {
+    if (currentUser?.role) {
+      switch (currentUser.role.toLowerCase()) {
+        case 'manager':
+          navigate('/manager');
+          break;
+        case 'tto':
+        case 'transport officer':
+          navigate('/tto-dashboard');
+          break;
+        case 'engineer':
+          navigate('/engineer-dashboard');
+          break;
+        case 'seller':
+          navigate('/seller-dashboard');
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
   return (
     <div className="home-wrapper">
       <nav className="navbar">
@@ -45,10 +76,16 @@ function Home() {
         </ul>
 
         <div className="profile-menu" onClick={toggleDropdown}>
+          <div className="user-info" style={{ marginRight: '10px', fontSize: '14px' }}>
+            {currentUser?.name || 'User'} ({currentUser?.role || 'N/A'})
+          </div>
           <div className="notification-icon">🔔</div>
           {dropdownOpen && (
             <div className="dropdown">
               <p onClick={handleViewProfile}>👤 View Profile</p>
+              {currentUser?.role && (
+                <p onClick={navigateToDashboard}>📊 My Dashboard</p>
+              )}
               <p onClick={handleLogout}>🚪 Logout</p>
             </div>
           )}

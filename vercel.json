@@ -1,6 +1,10 @@
 {
   "rewrites": [
     { 
+      "source": "/api/auth/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/auth/$1"
+    },
+    { 
       "source": "/api/tire-requests/(.*)", 
       "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
     },

@@ -12,7 +12,8 @@ import ManagerDashboard from './components/manager/ManagerDashboard';
 import TTOApprovedRequests from './components/tto/TTOApprovedRequests';
 import EngineerDashboard from './components/engineer/EngineerDashboard';
 import TireOrder from './components/TireOrder'; 
-import SellerDashboard from './components/SellerDashboard'; 
+import SellerDashboard from './components/SellerDashboard';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
   return (
@@ -21,22 +22,86 @@ function App() {
         <Route path="/" element={<Navigate to="/login" />} />
 
         <Route path="/login" element={<Login />} />
-        <Route path="/home" element={<Home />} />
-        <Route path="/about" element={<About />} />
-        <Route path="/contact" element={<Contact />} />
-        <Route path="/view-profile" element={<ViewProfile />} />
-        <Route path="/manager" element={<ManagerDashboard />} />
-        <Route path="/tto-dashboard" element={<TTODashboard />} />
-        <Route path="/tto" element={<TTODashboard />} />
-        <Route path="/engineer-dashboard" element={<EngineerDashboard />} />
+        
+        {/* Protected routes */}
+        <Route path="/home" element={
+          <PrivateRoute>
+            <Home />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/about" element={
+          <PrivateRoute>
+            <About />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/contact" element={
+          <PrivateRoute>
+            <Contact />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/view-profile" element={
+          <PrivateRoute>
+            <ViewProfile />
+          </PrivateRoute>
+        } />
+        
+        {/* Role-based protected routes */}
+        <Route path="/manager" element={
+          <PrivateRoute allowedRoles={['manager']}>
+            <ManagerDashboard />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/tto-dashboard" element={
+          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
+            <TTODashboard />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/tto" element={
+          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
+            <TTODashboard />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/engineer-dashboard" element={
+          <PrivateRoute allowedRoles={['engineer']}>
+            <EngineerDashboard />
+          </PrivateRoute>
+        } />
 
-        <Route path="/request" element={<RequestForm />} />
+        <Route path="/request" element={
+          <PrivateRoute>
+            <RequestForm />
+          </PrivateRoute>
+        } />
 
-        <Route path="/tto/approved-requests" element={<TTOApprovedRequests />} />
-        <Route path="/order-tires" element={<TireOrder />} />
-        <Route path="/order-tires/:requestId" element={<TireOrder />} />
-<Route path="/seller-dashboard" element={<SellerDashboard vendorEmail="seller.email=slttransportofficer@gmail.com
-" />} />
+        <Route path="/tto/approved-requests" element={
+          <PrivateRoute allowedRoles={['tto', 'transport officer']}>
+            <TTOApprovedRequests />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/order-tires" element={
+          <PrivateRoute allowedRoles={['tto', 'transport officer', 'manager']}>
+            <TireOrder />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/order-tires/:requestId" element={
+          <PrivateRoute allowedRoles={['tto', 'transport officer', 'manager']}>
+            <TireOrder />
+          </PrivateRoute>
+        } />
+        
+        <Route path="/seller-dashboard" element={
+          <PrivateRoute allowedRoles={['seller']}>
+            <SellerDashboard vendorEmail="seller.email=slttransportofficer@gmail.com" />
+          </PrivateRoute>
+        } />
 
       </Routes>
     </BrowserRouter>
