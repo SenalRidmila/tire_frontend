@@ -64,8 +64,9 @@ function Login() {
           navigate('/home');
         }, 1000);
       } else {
-        const errorData = await response.json();
-        setMessage(errorData.message || 'Invalid credentials. Please check your User ID and Password.');
+        // Backend returned error (400, 401, etc.) - fallback to demo mode
+        console.log('Backend error, activating fallback mode'); // Debug log
+        throw new Error(`Backend error: ${response.status}`);
       }
     } catch (error) {
       console.error('Login error:', error);
