@@ -511,15 +511,8 @@ function RequestForm() {
                         // If already a full HTTP URL, use as is
                         if (originalUrl.startsWith('http')) return originalUrl;
                         
-                        // Try different URL patterns
-                        const urlPatterns = [
-                          `${BASE_URL}${originalUrl}`,
-                          `${BASE_URL}/uploads/${originalUrl}`,
-                          `/uploads/${originalUrl}`,
-                          originalUrl.startsWith('/') ? originalUrl : `/${originalUrl}`
-                        ];
-                        
-                        return urlPatterns[0]; // Start with primary pattern
+                        // Use relative path to leverage Vercel proxy
+                        return originalUrl.startsWith('/uploads/') ? originalUrl : `/uploads/${originalUrl}`;
                       };
                       
                       const imageUrl = getImageUrl(url);
@@ -535,24 +528,19 @@ function RequestForm() {
                             // Create enhanced photo URLs for modal
                             const modalUrls = req.tirePhotoUrls.map(photoUrl => {
                               if (photoUrl.startsWith('http')) return photoUrl;
-                              return `${BASE_URL}${photoUrl}`;
+                              // Use relative path to leverage Vercel proxy
+                              return photoUrl.startsWith('/uploads/') ? photoUrl : `/uploads/${photoUrl}`;
                             });
                             openPhotoModal(modalUrls, idx);
                           }}
                           title="Click to view full size"
                           onError={(e) => {
                             console.warn(`Failed to load image: ${e.target.src}`);
-                            // Try fallback URLs
-                            const fallbackUrls = [
-                              `${BASE_URL}/uploads/${url}`,
-                              `/uploads/${url}`,
-                              url.startsWith('/') ? url : `/${url}`
-                            ];
-                            
-                            let currentFallback = parseInt(e.target.dataset.fallbackIndex || '0');
-                            if (currentFallback < fallbackUrls.length) {
-                              e.target.dataset.fallbackIndex = currentFallback + 1;
-                              e.target.src = fallbackUrls[currentFallback];
+                            // Try direct Railway backend URL as fallback
+                            if (!e.target.dataset.fallbackTried) {
+                              e.target.dataset.fallbackTried = 'true';
+                              const filename = url.split('/').pop();
+                              e.target.src = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
                             } else {
                               e.target.style.display = 'none';
                               e.target.insertAdjacentHTML('afterend', '<span style="color: red; font-size: 12px;">Image not found</span>');
