@@ -30,15 +30,25 @@ function EngineerDashboard() {
   // -------------------- Fetch --------------------
   const fetchRequests = async () => {
     try {
-      const { data } = await axios.get(`${API_URL}/engineer/requests`);
-      setRequests(Array.isArray(data) ? data : []);
+      // Try standard endpoint first
+      let response;
+      try {
+        response = await axios.get(API_URL);
+      } catch (standardError) {
+        console.log('Standard endpoint failed, trying engineer-specific endpoint...');
+        response = await axios.get(`${API_URL}/engineer/requests`);
+      }
+      
+      console.log('API Response:', response.data); // Debug log
+      setRequests(Array.isArray(response.data) ? response.data : []);
 
       // Debug – see all unique statuses coming from API
-      const unique = [...new Set((data || []).map(r => r.status))];
+      const unique = [...new Set((response.data || []).map(r => r.status))];
       console.log('Engineer unique statuses =>', unique);
     } catch (err) {
       console.error('Error fetching requests:', err);
-      alert('Failed to fetch requests. Please try again.');
+      console.error('API URL:', API_URL);
+      alert('Failed to fetch requests. Check console for details.');
     }
   };
 
@@ -229,7 +239,7 @@ function EngineerDashboard() {
                         {req.tirePhotoUrls.map((u, i) => (
                           <img
                             key={i}
-                            src={`${u}`}
+                            src={`${BASE_URL}${u}`}
                             alt={`Tire ${i + 1}`}
                             className="photo-thumbnail"
                             onClick={() => openPhoto(req.tirePhotoUrls, i)}
@@ -304,7 +314,7 @@ function EngineerDashboard() {
                         {req.tirePhotoUrls.map((u, i) => (
                           <img
                             key={i}
-                            src={`${u}`}
+                            src={`${BASE_URL}${u}`}
                             alt={`Tire ${i + 1}`}
                             className="photo-thumbnail"
                             onClick={() => openPhoto(req.tirePhotoUrls, i)}
@@ -361,7 +371,7 @@ function EngineerDashboard() {
                   {selectedRequest.tirePhotoUrls.map((u, i) => (
                     <img
                       key={i}
-                      src={`${u}`}
+                      src={`${BASE_URL}${u}`}
                       alt={`Tire ${i + 1}`}
                       className="photo-thumbnail"
                       onClick={() => openPhoto(selectedRequest.tirePhotoUrls, i)}
