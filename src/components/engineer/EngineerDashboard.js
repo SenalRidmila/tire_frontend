@@ -51,9 +51,19 @@ function EngineerDashboard() {
         try {
           console.log(`Trying endpoint: ${endpoint}`);
           response = await axios.get(endpoint);
-          console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
-          apiSuccess = true;
-          break;
+          
+          // Check if response is actually JSON data and not HTML
+          if (response.data && typeof response.data === 'object' && !response.data.includes && Array.isArray(response.data)) {
+            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+            apiSuccess = true;
+            break;
+          } else if (response.data && typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
+            continue;
+          } else {
+            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data);
+            continue;
+          }
         } catch (endpointError) {
           console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
           continue;

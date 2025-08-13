@@ -55,31 +55,41 @@ function RequestForm() {
       ];
       
       let response = null;
-      let lastError = null;
+      let apiSuccess = false;
       
       for (const endpoint of possibleEndpoints) {
         try {
           console.log(`Trying endpoint: ${endpoint}`);
           response = await axios.get(endpoint);
-          console.log(`Success with endpoint: ${endpoint}`, response.data);
-          break;
+          
+          // Check if response is actually JSON data and not HTML
+          if (response.data && typeof response.data === 'object' && !response.data.includes && Array.isArray(response.data)) {
+            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+            apiSuccess = true;
+            break;
+          } else if (response.data && typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
+            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
+            continue;
+          } else {
+            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data);
+            continue;
+          }
         } catch (endpointError) {
-          console.log(`Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
-          lastError = endpointError;
+          console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
           continue;
         }
       }
       
-      if (response) {
+      if (apiSuccess && response) {
         const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
         setRequests(data);
+        console.log('📡 API data loaded successfully');
       } else {
-        console.warn('All API endpoints failed, backend may be unavailable');
-        // Set empty array when backend is unavailable - RequestForm doesn't need mock data
+        console.warn('🔄 All API endpoints failed or returned invalid data, using empty array');
         setRequests([]);
       }
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      console.error('💥 Critical error in fetchRequests:', error);
       setRequests([]);
     }
   };
