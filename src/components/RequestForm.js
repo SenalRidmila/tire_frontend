@@ -2,12 +2,8 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequestForm.css';
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? `${process.env.REACT_APP_API_URL}/api/tire-requests`
-  : '/api/tire-requests';
-const BASE_URL = process.env.NODE_ENV === 'development' 
-  ? process.env.REACT_APP_API_URL 
-  : '';
+const API_URL = 'https://spirited-sparkle-production.up.railway.app/api/tire-requests';
+const BASE_URL = 'https://spirited-sparkle-production.up.railway.app';
 
 function RequestForm() {
   const [formData, setFormData] = useState({
@@ -44,14 +40,12 @@ function RequestForm() {
 
   const fetchRequests = async () => {
     try {
-      // Try multiple possible endpoints
+      // Try multiple possible endpoints on the Railway backend
       const possibleEndpoints = [
-        API_URL, // /api/tire-requests
-        API_URL.replace('/tire-requests', '/requests'), // /api/requests
-        API_URL.replace('/api/tire-requests', '/tire-requests'), // /tire-requests
-        API_URL.replace('/api/tire-requests', '/requests'), // /requests
-        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/api/requests`,
-        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/requests`
+        API_URL, // https://spirited-sparkle-production.up.railway.app/api/tire-requests
+        'https://spirited-sparkle-production.up.railway.app/api/requests',
+        'https://spirited-sparkle-production.up.railway.app/tire-requests',
+        'https://spirited-sparkle-production.up.railway.app/requests'
       ];
       
       let response = null;
@@ -59,7 +53,7 @@ function RequestForm() {
       
       for (const endpoint of possibleEndpoints) {
         try {
-          console.log(`Trying endpoint: ${endpoint}`);
+          console.log(`🔍 Trying Railway endpoint: ${endpoint}`);
           response = await axios.get(endpoint);
           
           // Check if response is actually JSON data and not HTML
@@ -71,12 +65,12 @@ function RequestForm() {
             console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
             continue;
           } else if (response.data && Array.isArray(response.data)) {
-            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+            console.log(`✅ Success with Railway endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
             break;
           } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
             // Handle case where data might be array-like object
-            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
+            console.log(`✅ Success with Railway endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
             break;
           } else {
@@ -84,7 +78,7 @@ function RequestForm() {
             continue;
           }
         } catch (endpointError) {
-          console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
+          console.log(`❌ Failed Railway endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
           continue;
         }
       }
@@ -104,9 +98,9 @@ function RequestForm() {
         
         const data = requestsData.map(req => ({ ...req, id: req._id || req.id }));
         setRequests(data);
-        console.log('📡 API data loaded successfully:', data.length, 'requests');
+        console.log('📡 Railway API data loaded successfully:', data.length, 'requests');
       } else {
-        console.warn('🔄 All API endpoints failed or returned invalid data, using empty array');
+        console.warn('🔄 All Railway API endpoints failed or returned invalid data, using empty array');
         setRequests([]);
       }
     } catch (error) {
