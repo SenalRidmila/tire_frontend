@@ -18,28 +18,104 @@ function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setMessage('');
     
     const { userId, password } = formData;
     
-    // Simple login - any credentials allow access to home page
-    if (userId.trim() && password.trim()) {
-      // Store user info for session
-      localStorage.setItem('user', JSON.stringify({
-        id: userId,
-        username: userId,
-        role: 'user', // Default role for regular users
-        timestamp: new Date().toISOString()
-      }));
-      
-      setMessage('Login successful! Welcome to the Tire Management System.');
-      setTimeout(() => {
-        navigate('/home'); // Always redirect to home page
-      }, 1000);
-    } else {
+    // Validate input
+    if (!userId.trim() || !password.trim()) {
       setMessage('Please enter both User ID and Password.');
+      setLoading(false);
+      return;
     }
+
+    try {
+      // Try to authenticate with MongoDB employee collection
+      const response = await fetch('https://tirebackend-production.up.railway.app/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          employeeId: userId,
+          password: password
+        }),
+      });
+
+      if (response.ok) {
+        const userData = await response.json();
+        
+        // Store user info for session
+        localStorage.setItem('user', JSON.stringify({
+          id: userData.employeeId,
+          username: userData.name || userId,
+          role: userData.role || 'user',
+          department: userData.department,
+          timestamp: new Date().toISOString()
+        }));
+        
+        setMessage('Login successful! Welcome to the Tire Management System.');
+        setTimeout(() => {
+          navigate('/home');
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        setMessage(errorData.message || 'Invalid credentials. Please check your User ID and Password.');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      
+      // Fallback: Demo employee collection data (for testing when backend is unavailable)
+      const demoEmployees = [
+        { 
+          employeeId: 'EMP001', 
+          password: 'Kaushalya417#', 
+          name: 'Manager Kaushalya', 
+          role: 'manager',
+          department: 'Management'
+        },
+        { 
+          employeeId: 'EMP002', 
+          password: 'saman123', 
+          name: 'Engineer Saman', 
+          role: 'engineer',
+          department: 'Technical'
+        },
+        { 
+          employeeId: 'EMP003', 
+          password: 'nimal456', 
+          name: 'User Nimal', 
+          role: 'user',
+          department: 'Operations'
+        }
+      ];
+      
+      const validEmployee = demoEmployees.find(
+        emp => emp.employeeId === userId && emp.password === password
+      );
+      
+      if (validEmployee) {
+        localStorage.setItem('user', JSON.stringify({
+          id: validEmployee.employeeId,
+          username: validEmployee.name,
+          role: validEmployee.role,
+          department: validEmployee.department,
+          timestamp: new Date().toISOString()
+        }));
+        
+        setMessage('Login successful! (Demo Mode) Welcome to the Tire Management System.');
+        setTimeout(() => {
+          navigate('/home');
+        }, 1000);
+      } else {
+        setMessage('Invalid User ID or Password. Please try again.');
+      }
+    }
+    
+    setLoading(false);
   };
 
   return (
