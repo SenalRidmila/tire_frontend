@@ -2,23 +2,23 @@
   "rewrites": [
     { 
       "source": "/api/tire-requests/(.*)", 
-      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-requests/$1"
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
     },
     { 
       "source": "/api/tire-requests", 
-      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-requests"
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests"
     },
     { 
       "source": "/api/tire-orders/(.*)", 
-      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-orders/$1"
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders/$1"
     },
     { 
       "source": "/api/tire-orders", 
-      "destination": "https://spirited-sparkle-production.up.railway.app/api/tire-orders"
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders"
     },
     { 
       "source": "/uploads/(.*)", 
-      "destination": "https://spirited-sparkle-production.up.railway.app/uploads/$1"
+      "destination": "https://tirebackend-production.up.railway.app/uploads/$1"
     },
     { "source": "/(.*)", "destination": "/" }
   ],
@@ -34,6 +34,6 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://spirited-sparkle-production.up.railway.app"
+    "REACT_APP_API_URL": "https://tirebackend-production.up.railway.app"
   }
 }
