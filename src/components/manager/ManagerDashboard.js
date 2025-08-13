@@ -1,6 +1,6 @@
 // Keep all existing imports as-is
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './ManagerDashboard.css';
 import '../RequestForm.css';
@@ -19,14 +19,32 @@ function ManagerDashboard() {
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
+    // Get current user info
+    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
+    setCurrentUser(user);
+    
     fetchRequests();
     const params = new URLSearchParams(location.search);
     const requestId = params.get('requestId');
     if (requestId) fetchRequestDetails(requestId);
   }, [location]);
+
+  const handleLogout = () => {
+    if (window.confirm('Are you sure you want to logout?')) {
+      localStorage.removeItem('currentUser');
+      localStorage.removeItem('isAuthenticated');
+      navigate('/login');
+    }
+  };
+
+  const goToHome = () => {
+    navigate('/home');
+  };
   
   const fetchRequests = async () => {
     try {

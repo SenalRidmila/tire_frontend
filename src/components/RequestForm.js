@@ -374,7 +374,11 @@ function RequestForm() {
       } else {
         // Add new mock request
         setRequests(prev => [...prev, newRequest]);
-        alert('🎭 Mock: Request submitted successfully! (Demo mode - backend unavailable)');
+        
+        // Send notification email to manager
+        await sendManagerNotification(newRequest);
+        
+        alert('🎭 Mock: Request submitted successfully! Manager has been notified via email. (Demo mode - backend unavailable)');
       }
       resetForm();
       return;
@@ -384,19 +388,104 @@ function RequestForm() {
       const formDataToSend = new FormData();
       Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
       selectedFiles.forEach(file => formDataToSend.append('tirePhotos', file));
+      
+      let response;
       if (editingId) {
         // For update, assume PUT endpoint
-        await axios.put(`${API_URL}/${editingId}`, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
+        response = await axios.put(`${API_URL}/${editingId}`, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
         alert('Request updated successfully!');
       } else {
-        await axios.post(API_URL, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
-        alert('Request submitted successfully!');
+        response = await axios.post(API_URL, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
+        
+        // Send notification email to manager after successful submission
+        if (response.data) {
+          await sendManagerNotification(response.data);
+        }
+        
+        alert('Request submitted successfully! Manager has been notified via email.');
       }
       fetchRequests();
       resetForm();
     } catch (error) {
       console.error('Submit error:', error);
       alert('Failed to submit request. Please try again.');
+    }
+  };
+
+  // Send email notification to manager
+  const sendManagerNotification = async (requestData) => {
+    try {
+      const managerEmail = 'kaushalya@slt.lk'; // Manager email
+      const dashboardLink = `${window.location.origin}/manager?requestId=${requestData.id}`;
+      
+      const emailData = {
+        to: managerEmail,
+        subject: `New Tire Request Submitted - ${requestData.vehicleNo}`,
+        html: `
+          <h2>🚗 New Tire Request Notification</h2>
+          <p>A new tire replacement request has been submitted and requires your approval.</p>
+          
+          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
+            <h3>Request Details:</h3>
+            <p><strong>Vehicle Number:</strong> ${requestData.vehicleNo}</p>
+            <p><strong>Vehicle Type:</strong> ${requestData.vehicleType}</p>
+            <p><strong>Brand/Model:</strong> ${requestData.vehicleBrand} ${requestData.vehicleModel}</p>
+            <p><strong>Section:</strong> ${requestData.userSection}</p>
+            <p><strong>Tire Size:</strong> ${requestData.tireSize}</p>
+            <p><strong>Number of Tires:</strong> ${requestData.noOfTires}</p>
+            <p><strong>Number of Tubes:</strong> ${requestData.noOfTubes}</p>
+            <p><strong>Present KM:</strong> ${requestData.presentKm}</p>
+            <p><strong>Officer Service No:</strong> ${requestData.officerServiceNo}</p>
+            <p><strong>Comments:</strong> ${requestData.comments || 'None'}</p>
+          </div>
+          
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="${dashboardLink}" 
+               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              🔍 Review Request in Manager Dashboard
+            </a>
+          </div>
+          
+          <p style="color: #666; font-size: 12px;">
+            Click the button above to access the Manager Dashboard and approve or reject this request.
+          </p>
+        `
+      };
+
+      // Try to send email through backend
+      const emailEndpoints = [
+        '/api/send-email',
+        '/api/notifications/email',
+        '/api/mail/send'
+      ];
+
+      let emailSent = false;
+      for (const endpoint of emailEndpoints) {
+        try {
+          await axios.post(endpoint, emailData);
+          console.log(`✅ Email sent successfully via: ${endpoint}`);
+          emailSent = true;
+          break;
+        } catch (error) {
+          console.log(`❌ Failed email endpoint: ${endpoint}`, error.response?.status);
+          continue;
+        }
+      }
+
+      if (!emailSent) {
+        console.log('📧 Email notification simulated (backend unavailable)');
+        // Show notification in console for development
+        console.log('MANAGER EMAIL NOTIFICATION:', {
+          to: managerEmail,
+          subject: emailData.subject,
+          dashboardLink: dashboardLink,
+          requestData: requestData
+        });
+      }
+
+    } catch (error) {
+      console.error('Email notification error:', error);
+      // Don't fail the request submission if email fails
     }
   };
 

@@ -48,14 +48,8 @@ function App() {
           </PrivateRoute>
         } />
         
-        {/* Role-based protected routes */}
-        <Route path="/manager" element={
-          <PrivateRoute allowedRoles={['manager']}>
-            <ManagerDashboard />
-          </PrivateRoute>
-        } />
-        
         {/* Direct access routes - no authentication required */}
+        <Route path="/manager" element={<ManagerDashboard />} />
         <Route path="/tto-dashboard" element={<TTODashboard />} />
         <Route path="/tto" element={<TTODashboard />} />
         <Route path="/engineer-dashboard" element={<EngineerDashboard />} />

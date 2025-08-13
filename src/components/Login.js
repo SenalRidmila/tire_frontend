@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import './Login.css';
 
 function Login() {
@@ -10,7 +9,7 @@ function Login() {
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [message, setMessage] = useState('');
 
   const handleInputChange = (e) => {
     setFormData({
@@ -19,53 +18,27 @@ function Login() {
     });
   };
 
-  const handleLogin = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    try {
-      // Check if this is manager login (EMP001)
-      if (formData.userId === 'EMP001' && formData.password === 'Kaushalya417#') {
-        // Manager authentication - store in localStorage and go to manager dashboard
-        const managerUser = {
-          id: 'EMP001',
-          userId: 'EMP001',
-          name: 'Kaushalya Senalratne',
-          role: 'manager',
-          email: 'kaushalya@slt.lk',
-          department: 'Transport',
-          serviceNo: 'EMP001'
-        };
-        
-        localStorage.setItem('currentUser', JSON.stringify(managerUser));
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/manager');
-        return;
-      }
+    
+    const { userId, password } = formData;
+    
+    // Simple login - any credentials allow access to home page
+    if (userId.trim() && password.trim()) {
+      // Store user info for session
+      localStorage.setItem('user', JSON.stringify({
+        id: userId,
+        username: userId,
+        role: 'user', // Default role for regular users
+        timestamp: new Date().toISOString()
+      }));
       
-      // For any other credentials, just go to home page (no authentication required)
-      if (formData.userId && formData.password) {
-        // Create a basic user object for home page access
-        const basicUser = {
-          id: formData.userId,
-          userId: formData.userId,
-          name: 'User',
-          role: 'user',
-          email: `${formData.userId}@slt.lk`
-        };
-        
-        localStorage.setItem('currentUser', JSON.stringify(basicUser));
-        localStorage.setItem('isAuthenticated', 'true');
-        navigate('/home');
-      } else {
-        setError('Please enter both User ID and Password');
-      }
-    } catch (error) {
-      console.error('Login error:', error);
-      setError('Login failed. Please try again.');
-    } finally {
-      setLoading(false);
+      setMessage('Login successful! Welcome to the Tire Management System.');
+      setTimeout(() => {
+        navigate('/home'); // Always redirect to home page
+      }, 1000);
+    } else {
+      setMessage('Please enter both User ID and Password.');
     }
   };
 
@@ -87,7 +60,7 @@ function Login() {
       <div className="login-card">
         <div className="login-left">
           <h2>LOGIN</h2>
-          <form onSubmit={handleLogin}>
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label><i className="fa fa-user"></i> User ID</label>
               <input 
@@ -111,14 +84,14 @@ function Login() {
               />
             </div>
             
-            {error && (
-              <div className="error-message" style={{
-                color: 'red', 
+            {message && (
+              <div className="message" style={{
+                color: message.includes('successful') ? 'green' : 'red', 
                 fontSize: '14px', 
                 marginBottom: '10px',
                 textAlign: 'center'
               }}>
-                {error}
+                {message}
               </div>
             )}
             
@@ -134,24 +107,6 @@ function Login() {
               {loading ? 'Logging in...' : 'Login Now'}
             </button>
           </form>
-          
-          <div className="demo-credentials" style={{
-            marginTop: '20px',
-            fontSize: '12px',
-            color: '#666',
-            backgroundColor: '#f8f9fa',
-            padding: '10px',
-            borderRadius: '5px'
-          }}>
-            <strong>Access Information:</strong><br/>
-            <span style={{color: '#007bff', fontWeight: 'bold'}}>EMP001 / Kaushalya417#</span> → Manager Dashboard<br/>
-            <span style={{color: '#28a745', fontWeight: 'bold'}}>Any other credentials</span> → Home Page<br/>
-            <hr style={{margin: '8px 0'}}/>
-            <small style={{color: '#888'}}>
-              Enter any User ID and Password to access the home page.<br/>
-              Only Manager account requires specific credentials.
-            </small>
-          </div>
         </div>
 
         <div className="login-right">

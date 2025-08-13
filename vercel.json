@@ -9,6 +9,18 @@
       "destination": "https://tirebackend-production.up.railway.app/api/employees/$1"
     },
     { 
+      "source": "/api/send-email", 
+      "destination": "https://tirebackend-production.up.railway.app/api/send-email"
+    },
+    { 
+      "source": "/api/notifications/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/notifications/$1"
+    },
+    { 
+      "source": "/api/mail/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/mail/$1"
+    },
+    { 
       "source": "/api/tire-requests/(.*)", 
       "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
     },
