@@ -22,6 +22,80 @@ function RequestForm() {
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
+  const [usingMockData, setUsingMockData] = useState(false);
+
+  // Mock data for development/testing when backend is unavailable
+  const mockRequests = [
+    {
+      id: 'mock-1',
+      vehicleNo: 'WP-1234',
+      vehicleType: 'Car',
+      vehicleBrand: 'Toyota',
+      vehicleModel: 'Prius',
+      userSection: 'Transport',
+      replacementDate: '2024-01-15',
+      existingMake: 'Bridgestone',
+      tireSize: '195/65R15',
+      noOfTires: 4,
+      noOfTubes: 0,
+      costCenter: 1001,
+      presentKm: 85000,
+      previousKm: 75000,
+      wearIndicator: 'Yes',
+      wearPattern: 'One Edge',
+      officerServiceNo: 'EMP001',
+      comments: 'Front tires showing wear',
+      email: 'transport@company.com',
+      status: 'PENDING',
+      tirePhotoUrls: []
+    },
+    {
+      id: 'mock-2',
+      vehicleNo: 'WP-5678',
+      vehicleType: 'Van',
+      vehicleBrand: 'Nissan',
+      vehicleModel: 'Caravan',
+      userSection: 'Logistics',
+      replacementDate: '2024-02-20',
+      existingMake: 'Michelin',
+      tireSize: '215/60R16',
+      noOfTires: 2,
+      noOfTubes: 2,
+      costCenter: 1002,
+      presentKm: 120000,
+      previousKm: 110000,
+      wearIndicator: 'No',
+      wearPattern: 'Center',
+      officerServiceNo: 'EMP002',
+      comments: 'Rear tires need replacement',
+      email: 'logistics@company.com',
+      status: 'APPROVED',
+      tirePhotoUrls: []
+    },
+    {
+      id: 'mock-3',
+      vehicleNo: 'WP-9999',
+      vehicleType: 'Truck',
+      vehicleBrand: 'Isuzu',
+      vehicleModel: 'NPR',
+      userSection: 'Delivery',
+      replacementDate: '2024-03-10',
+      existingMake: 'Yokohama',
+      tireSize: '7.50R16',
+      noOfTires: 6,
+      noOfTubes: 6,
+      costCenter: 1003,
+      presentKm: 200000,
+      previousKm: 180000,
+      wearIndicator: 'Yes',
+      wearPattern: 'Both Edges',
+      officerServiceNo: 'EMP003',
+      comments: 'Heavy usage requires new tires',
+      email: 'delivery@company.com',
+      status: 'REJECTED',
+      tirePhotoUrls: []
+    }
+  ];
 
   useEffect(() => { fetchRequests(); }, []);
   useEffect(() => {
@@ -65,11 +139,13 @@ function RequestForm() {
           } else if (response.data && Array.isArray(response.data)) {
             console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
+            setUsingMockData(false);
             break;
           } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
             // Handle case where data might be array-like object
             console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
             apiSuccess = true;
+            setUsingMockData(false);
             break;
           } else {
             console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data, response.data);
@@ -98,12 +174,16 @@ function RequestForm() {
         setRequests(data);
         console.log('📡 Proxied API data loaded successfully:', data.length, 'requests');
       } else {
-        console.warn('🔄 All proxied API endpoints failed or returned invalid data, using empty array');
-        setRequests([]);
+        // Fallback to mock data when all API endpoints fail
+        console.warn('🔄 All proxied API endpoints failed, using mock data for development');
+        setRequests(mockRequests);
+        setUsingMockData(true);
+        console.log('🎭 Mock data loaded:', mockRequests.length, 'sample requests');
       }
     } catch (error) {
-      console.error('💥 Critical error in fetchRequests:', error);
-      setRequests([]);
+      console.error('💥 Critical error in fetchRequests, falling back to mock data:', error);
+      setRequests(mockRequests);
+      setUsingMockData(true);
     }
   };
 
@@ -277,6 +357,28 @@ function RequestForm() {
       return;
     }
 
+    if (usingMockData) {
+      // Mock submission for demo purposes
+      const newRequest = {
+        ...formData,
+        id: `mock-${Date.now()}`,
+        status: 'PENDING',
+        tirePhotoUrls: []
+      };
+      
+      if (editingId) {
+        // Update existing mock request
+        setRequests(prev => prev.map(req => req.id === editingId ? { ...newRequest, id: editingId } : req));
+        alert('🎭 Mock: Request updated successfully! (Demo mode - backend unavailable)');
+      } else {
+        // Add new mock request
+        setRequests(prev => [...prev, newRequest]);
+        alert('🎭 Mock: Request submitted successfully! (Demo mode - backend unavailable)');
+      }
+      resetForm();
+      return;
+    }
+
     try {
       const formDataToSend = new FormData();
       Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
@@ -345,6 +447,14 @@ function RequestForm() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure to delete this request?')) return;
+    
+    if (usingMockData) {
+      // Mock deletion for demo purposes
+      setRequests(prev => prev.filter(req => req.id !== id));
+      alert('🎭 Mock: Request deleted successfully! (Demo mode - backend unavailable)');
+      return;
+    }
+    
     try {
       await axios.delete(`${API_URL}/${id}`);
       fetchRequests();
@@ -418,6 +528,19 @@ function RequestForm() {
 
   return (
     <>
+      {usingMockData && (
+        <div style={{
+          backgroundColor: '#fff3cd',
+          border: '1px solid #ffeaa7',
+          color: '#856404',
+          padding: '10px',
+          margin: '10px 0',
+          borderRadius: '5px',
+          textAlign: 'center'
+        }}>
+          🎭 <strong>Demo Mode:</strong> Backend unavailable - Using sample data for demonstration
+        </div>
+      )}
 
       <form className="request-form" onSubmit={handleSubmit} noValidate>
         <h2>TIRE REQUEST FORM</h2>
