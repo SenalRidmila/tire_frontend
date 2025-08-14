@@ -50,13 +50,22 @@ function Login() {
       if (response.ok) {
         const userData = await response.json();
         
-        // Store user info for session
+        // Store user info and authentication status for session
         localStorage.setItem('user', JSON.stringify({
           id: userData.employeeId,
           username: userData.name || userId,
           role: userData.role || 'user',
           department: userData.department,
           timestamp: new Date().toISOString()
+        }));
+        
+        // Set authentication status
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: userData.employeeId,
+          name: userData.name || userId,
+          role: userData.role || 'user',
+          department: userData.department
         }));
         
         setMessage('Login successful! Welcome to the Tire Management System.');
@@ -106,12 +115,22 @@ function Login() {
       console.log('Valid employee found:', validEmployee); // Debug log
       
       if (validEmployee) {
+        // Store user info and authentication status for session
         localStorage.setItem('user', JSON.stringify({
           id: validEmployee.employeeId,
           username: validEmployee.name,
           role: validEmployee.role,
           department: validEmployee.department,
           timestamp: new Date().toISOString()
+        }));
+        
+        // Set authentication status
+        localStorage.setItem('isAuthenticated', 'true');
+        localStorage.setItem('currentUser', JSON.stringify({
+          id: validEmployee.employeeId,
+          name: validEmployee.name,
+          role: validEmployee.role,
+          department: validEmployee.department
         }));
         
         setMessage('Login successful! (Demo Mode) Welcome to the Tire Management System.');
