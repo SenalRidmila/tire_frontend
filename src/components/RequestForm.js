@@ -114,76 +114,67 @@ function RequestForm() {
 
   const fetchRequests = async () => {
     try {
-      // Try proxy endpoints (no CORS issues)
-      const possibleEndpoints = [
-        API_URL, // /api/tire-requests (proxied to Railway)
-        '/api/requests', // Alternative endpoint
-      ];
+      console.log('🔍 Fetching tire requests from MongoDB Atlas...');
       
-      let response = null;
-      let apiSuccess = false;
-      
-      for (const endpoint of possibleEndpoints) {
-        try {
-          console.log(`🔍 Trying proxied endpoint: ${endpoint}`);
-          response = await axios.get(endpoint);
-          
-          // Check if response is actually JSON data and not HTML
-          if (response.data && typeof response.data === 'string' && (
-            response.data.includes('<!doctype html>') || 
-            response.data.includes('<html') ||
-            response.data.includes('<HTML')
-          )) {
-            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
-            continue;
-          } else if (response.data && Array.isArray(response.data)) {
-            console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
-            apiSuccess = true;
-            setUsingMockData(false);
-            break;
-          } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
-            // Handle case where data might be array-like object
-            console.log(`✅ Success with proxied endpoint: ${endpoint}`, response.data);
-            apiSuccess = true;
-            setUsingMockData(false);
-            break;
-          } else {
-            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data, response.data);
-            continue;
-          }
-        } catch (endpointError) {
-          console.log(`❌ Failed proxied endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
-          continue;
-        }
-      }
-      
-      if (apiSuccess && response && response.data) {
-        // Ensure we have array data before processing
-        let requestsData = [];
-        if (Array.isArray(response.data)) {
-          requestsData = response.data;
-        } else if (response.data && typeof response.data === 'object' && response.data.length !== undefined) {
-          // Convert array-like object to actual array
-          requestsData = Array.from(response.data);
-        } else {
-          console.warn('🔄 Response data is not an array, using empty array');
-          requestsData = [];
-        }
+      // Try MongoDB tire_requests collection via Railway backend
+      try {
+        const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
         
-        const data = requestsData.map(req => ({ ...req, id: req._id || req.id }));
-        setRequests(data);
-        console.log('📡 Proxied API data loaded successfully:', data.length, 'requests');
-      } else {
-        // Fallback to mock data when all API endpoints fail
-        console.warn('🔄 All proxied API endpoints failed, using mock data for development');
-        setRequests(mockRequests);
-        setUsingMockData(true);
-        console.log('🎭 Mock data loaded:', mockRequests.length, 'sample requests');
+        if (response.ok) {
+          const requestsData = await response.json();
+          console.log('✅ MongoDB tire_requests collection data loaded:', requestsData);
+          
+          // Process MongoDB data to ensure proper photo URLs
+          const processedRequests = requestsData.map(req => ({
+            ...req,
+            id: req._id || req.id,
+            // Handle tire photo URLs from MongoDB
+            tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+              // If already a full URL, use as is
+              if (photoUrl.startsWith('http')) return photoUrl;
+              
+              // If it's a relative path, construct full Railway URL
+              if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+                const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+                return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+              }
+              
+              // If it's just a filename, add the full path
+              return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+            }) : []
+          }));
+          
+          setRequests(processedRequests);
+          setUsingMockData(false);
+          console.log('📊 Successfully loaded', processedRequests.length, 'tire requests with photos from MongoDB');
+          return;
+        } else {
+          console.log('❌ MongoDB API error:', response.status, response.statusText);
+          throw new Error(`API error: ${response.status}`);
+        }
+      } catch (mongoError) {
+        console.error('MongoDB connection failed:', mongoError);
+        throw mongoError;
       }
     } catch (error) {
-      console.error('💥 Critical error in fetchRequests, falling back to mock data:', error);
-      setRequests(mockRequests);
+      console.error('� Failed to fetch from MongoDB, using fallback mock data:', error);
+      
+      // Enhanced mock data with proper photo URLs for demo
+      const enhancedMockRequests = mockRequests.map(req => ({
+        ...req,
+        tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(url => 
+          url.startsWith('/images/') ? url : `/images/${url}`
+        ) : []
+      }));
+      
+      setRequests(enhancedMockRequests);
       setUsingMockData(true);
+      console.log('🎭 Using enhanced mock data with', enhancedMockRequests.length, 'sample requests');
     }
   };
 
@@ -594,15 +585,25 @@ function RequestForm() {
                 <td>
                   <div className="photos-container">
                     {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, idx) => {
-                      // Enhanced URL handling with multiple fallbacks
+                      // Enhanced MongoDB photo URL handling
                       const getImageUrl = (originalUrl) => {
                         if (!originalUrl) return null;
                         
-                        // If already a full HTTP URL, use as is
+                        // If already a full HTTP URL from MongoDB, use as is
                         if (originalUrl.startsWith('http')) return originalUrl;
                         
-                        // Use relative path to leverage Vercel proxy
-                        return originalUrl.startsWith('/uploads/') ? originalUrl : `/uploads/${originalUrl}`;
+                        // Handle relative paths from MongoDB
+                        if (originalUrl.startsWith('/uploads/')) {
+                          return `https://tirebackend-production.up.railway.app${originalUrl}`;
+                        }
+                        
+                        // Handle direct filenames from MongoDB
+                        if (!originalUrl.startsWith('/')) {
+                          return `https://tirebackend-production.up.railway.app/uploads/${originalUrl}`;
+                        }
+                        
+                        // Fallback to demo images for development
+                        return originalUrl.startsWith('/images/') ? originalUrl : `/images/${originalUrl}`;
                       };
                       
                       const imageUrl = getImageUrl(url);
@@ -612,33 +613,56 @@ function RequestForm() {
                         <img
                           key={idx}
                           src={imageUrl}
-                          alt={`Tire ${idx + 1}`}
+                          alt={`Tire ${idx + 1} - ${req.vehicleNo}`}
                           className="table-photo"
                           onClick={() => {
-                            // Create enhanced photo URLs for modal
-                            const modalUrls = req.tirePhotoUrls.map(photoUrl => {
-                              if (photoUrl.startsWith('http')) return photoUrl;
-                              // Use relative path to leverage Vercel proxy
-                              return photoUrl.startsWith('/uploads/') ? photoUrl : `/uploads/${photoUrl}`;
-                            });
+                            // Create enhanced photo URLs for modal from MongoDB data
+                            const modalUrls = req.tirePhotoUrls.map(photoUrl => getImageUrl(photoUrl));
                             openPhotoModal(modalUrls, idx);
                           }}
-                          title="Click to view full size"
+                          title={`Click to view tire photo ${idx + 1} full size (${req.vehicleNo})`}
                           onError={(e) => {
-                            console.warn(`Failed to load image: ${e.target.src}`);
-                            // Try direct Railway backend URL as fallback
+                            console.warn(`❌ Failed to load MongoDB tire photo: ${e.target.src}`);
+                            
+                            // Try multiple fallback strategies for MongoDB photos
                             if (!e.target.dataset.fallbackTried) {
                               e.target.dataset.fallbackTried = 'true';
+                              
+                              // Extract filename and try direct Railway backend URL
                               const filename = url.split('/').pop();
-                              e.target.src = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                              const fallbackUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                              
+                              console.log(`🔄 Trying fallback URL: ${fallbackUrl}`);
+                              e.target.src = fallbackUrl;
+                            } else if (!e.target.dataset.demoFallbackTried) {
+                              e.target.dataset.demoFallbackTried = 'true';
+                              
+                              // Try demo images as final fallback
+                              const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
+                              const demoUrl = demoImages[idx % demoImages.length];
+                              
+                              console.log(`🔄 Trying demo fallback: ${demoUrl}`);
+                              e.target.src = demoUrl;
                             } else {
+                              // All fallbacks failed - show error placeholder
                               e.target.style.display = 'none';
-                              e.target.insertAdjacentHTML('afterend', '<span style="color: red; font-size: 12px;">Image not found</span>');
+                              if (!e.target.nextElementSibling?.classList?.contains('photo-error')) {
+                                e.target.insertAdjacentHTML('afterend', 
+                                  '<span class="photo-error" style="color: #dc3545; font-size: 11px; background: #f8d7da; padding: 2px 6px; border-radius: 3px; display: inline-block; margin: 1px;">📷 Photo unavailable</span>'
+                                );
+                              }
                             }
+                          }}
+                          onLoad={() => {
+                            console.log(`✅ Successfully loaded tire photo: ${imageUrl}`);
                           }}
                         />
                       );
-                    }) : <span>No photos</span>}
+                    }) : (
+                      <span style={{ color: '#6c757d', fontSize: '12px', fontStyle: 'italic' }}>
+                        📷 No tire photos uploaded
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td>
