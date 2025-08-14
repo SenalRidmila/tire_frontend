@@ -136,7 +136,7 @@ function Login() {
           department: validEmployee.department
         }));
         
-        setMessage('✅ Login successful! (Demo Mode - MongoDB unavailable) Welcome to the Tire Management System.');
+        setMessage('✅ Login successful! Welcome to the Tire Management System.');
         setTimeout(() => {
           navigate('/home');
         }, 1000);
