@@ -35,23 +35,34 @@ function ViewProfile() {
           const mongoData = await response.json();
           console.log('✅ MongoDB employee data loaded:', mongoData);
           
+          // Use actual MongoDB employee data with proper field mapping
           setEmployeeData({
-            employeeId: mongoData.employeeId || employeeId,
-            name: mongoData.name || currentUser.name,
-            email: mongoData.email || generateEmail(employeeId, mongoData.name || currentUser.name),
-            position: getPositionByRole(mongoData.role || currentUser.role),
-            department: mongoData.department || currentUser.department,
-            phone: mongoData.phone || `+94 77 ${Math.floor(Math.random() * 9000000) + 1000000}`,
-            address: mongoData.address || 'SLT Office, Colombo',
-            age: mongoData.age || '28',
-            joinDate: mongoData.joinDate || '2023-01-15',
-            status: mongoData.status || 'Active',
-            skills: mongoData.skills || ['JavaScript', 'React', 'Node.js'],
-            projects: mongoData.projects || ['Tire Management System']
+            employeeId: mongoData.employeeId || mongoData._id || employeeId,
+            name: mongoData.name || mongoData.fullName || currentUser.name || 'Employee Name',
+            email: mongoData.email || generateEmail(mongoData.employeeId || employeeId, mongoData.name || currentUser.name),
+            position: mongoData.position || mongoData.jobTitle || getPositionByRole(mongoData.role || currentUser.role),
+            department: mongoData.department || mongoData.dept || currentUser.department || 'IT Solutions',
+            phone: mongoData.phone || mongoData.phoneNumber || mongoData.contact || '+94 77 123 4567',
+            address: mongoData.address || mongoData.location || 'SLT Office, Colombo',
+            age: mongoData.age || mongoData.ageYears || '28',
+            joinDate: mongoData.joinDate || mongoData.startDate || mongoData.dateJoined || '2023-01-15',
+            status: mongoData.status || mongoData.employeeStatus || 'Active',
+            skills: mongoData.skills || mongoData.technicalSkills || mongoData.expertise || ['JavaScript', 'React', 'Node.js'],
+            projects: mongoData.projects || mongoData.currentProjects || mongoData.assignedProjects || ['Tire Management System'],
+            // Additional MongoDB fields
+            salary: mongoData.salary || mongoData.basicSalary,
+            manager: mongoData.manager || mongoData.reportingManager,
+            workLocation: mongoData.workLocation || mongoData.office,
+            experience: mongoData.experience || mongoData.yearsOfExperience,
+            qualification: mongoData.qualification || mongoData.education,
+            emergencyContact: mongoData.emergencyContact,
+            employeeType: mongoData.employeeType || mongoData.contractType || 'Full-time'
           });
           
-          setError('');
+          setError(''); // Clear error since we got MongoDB data successfully
+          console.log('📊 ViewProfile: Successfully loaded employee data from MongoDB Atlas');
         } else {
+          console.log('❌ MongoDB employee API error:', response.status, response.statusText);
           throw new Error(`MongoDB API error: ${response.status}`);
         }
       } catch (mongoError) {
@@ -156,30 +167,97 @@ function ViewProfile() {
             <img src="/images/default-profile.png" alt="Employee" className="profile-photo" />
             <div className="employee-details">
               <h2>{employeeData.name}</h2>
-              <p><strong>Employee ID:</strong> {employeeData.employeeId}</p>
-              <p><strong>Email:</strong> {employeeData.email}</p>
-              <p><strong>Position:</strong> {employeeData.position}</p>
-              <p><strong>Department:</strong> {employeeData.department}</p>
-              <p><strong>Phone Number:</strong> {employeeData.phone}</p>
-              <p><strong>Address:</strong> {employeeData.address}</p>
-              <p><strong>Age:</strong> {employeeData.age} years</p>
-              <p><strong>Join Date:</strong> {employeeData.joinDate}</p>
-              <p><strong>Status:</strong> <span style={{ color: 'green', fontWeight: 'bold' }}>{employeeData.status}</span></p>
               
-              {employeeData.skills && (
-                <p><strong>Skills:</strong> {employeeData.skills.join(', ')}</p>
-              )}
-              
-              {employeeData.projects && employeeData.projects.length > 0 && (
-                <div>
-                  <strong>Current Projects:</strong>
-                  <ul style={{ marginTop: '5px' }}>
-                    {employeeData.projects.map((project, index) => (
-                      <li key={index}>{project}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              {/* Basic Information */}
+              <div className="info-section">
+                <h3 style={{ color: '#2c3e50', borderBottom: '2px solid #3498db', paddingBottom: '5px', marginBottom: '15px' }}>📋 Basic Information</h3>
+                <p><strong>Employee ID:</strong> {employeeData.employeeId}</p>
+                <p><strong>Email:</strong> {employeeData.email}</p>
+                <p><strong>Position:</strong> {employeeData.position}</p>
+                <p><strong>Department:</strong> {employeeData.department}</p>
+                <p><strong>Employee Type:</strong> {employeeData.employeeType}</p>
+                <p><strong>Phone Number:</strong> {employeeData.phone}</p>
+                <p><strong>Address:</strong> {employeeData.address}</p>
+                {employeeData.workLocation && (
+                  <p><strong>Work Location:</strong> {employeeData.workLocation}</p>
+                )}
+              </div>
+
+              {/* Personal Information */}
+              <div className="info-section" style={{ marginTop: '20px' }}>
+                <h3 style={{ color: '#2c3e50', borderBottom: '2px solid #e74c3c', paddingBottom: '5px', marginBottom: '15px' }}>👤 Personal Information</h3>
+                <p><strong>Age:</strong> {employeeData.age} years</p>
+                <p><strong>Join Date:</strong> {employeeData.joinDate}</p>
+                <p><strong>Status:</strong> <span style={{ color: 'green', fontWeight: 'bold' }}>{employeeData.status}</span></p>
+                {employeeData.experience && (
+                  <p><strong>Experience:</strong> {employeeData.experience} years</p>
+                )}
+                {employeeData.qualification && (
+                  <p><strong>Qualification:</strong> {employeeData.qualification}</p>
+                )}
+                {employeeData.emergencyContact && (
+                  <p><strong>Emergency Contact:</strong> {employeeData.emergencyContact}</p>
+                )}
+              </div>
+
+              {/* Professional Information */}
+              <div className="info-section" style={{ marginTop: '20px' }}>
+                <h3 style={{ color: '#2c3e50', borderBottom: '2px solid #f39c12', paddingBottom: '5px', marginBottom: '15px' }}>💼 Professional Information</h3>
+                {employeeData.manager && (
+                  <p><strong>Reporting Manager:</strong> {employeeData.manager}</p>
+                )}
+                {employeeData.salary && (
+                  <p><strong>Salary:</strong> Rs. {typeof employeeData.salary === 'number' ? employeeData.salary.toLocaleString() : employeeData.salary}</p>
+                )}
+                
+                {employeeData.skills && employeeData.skills.length > 0 && (
+                  <div>
+                    <strong>Technical Skills:</strong>
+                    <div style={{ marginTop: '8px' }}>
+                      {employeeData.skills.map((skill, index) => (
+                        <span 
+                          key={index}
+                          style={{
+                            display: 'inline-block',
+                            background: '#3498db',
+                            color: 'white',
+                            padding: '4px 8px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            margin: '2px 4px 2px 0'
+                          }}
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {employeeData.projects && employeeData.projects.length > 0 && (
+                  <div style={{ marginTop: '15px' }}>
+                    <strong>Current Projects:</strong>
+                    <ul style={{ marginTop: '8px', paddingLeft: '20px' }}>
+                      {employeeData.projects.map((project, index) => (
+                        <li key={index} style={{ marginBottom: '5px', color: '#2c3e50' }}>{project}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+
+              {/* MongoDB Data Source Indicator */}
+              <div style={{ 
+                marginTop: '20px', 
+                padding: '10px', 
+                background: '#d5edda', 
+                border: '1px solid #c3e6cb', 
+                borderRadius: '5px',
+                fontSize: '12px',
+                color: '#155724'
+              }}>
+                <strong>🗄️ Data Source:</strong> {error ? 'Demo Data (MongoDB unavailable)' : 'MongoDB Atlas Employee Collection'}
+              </div>
             </div>
           </div>
         )}
