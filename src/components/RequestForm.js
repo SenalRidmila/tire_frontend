@@ -622,33 +622,75 @@ function RequestForm() {
                           }}
                           title={`Click to view tire photo ${idx + 1} full size (${req.vehicleNo})`}
                           onError={(e) => {
-                            console.warn(`❌ Failed to load MongoDB tire photo: ${e.target.src}`);
+                            console.warn(`❌ Image loading failed: ${e.target.src}`);
+                            console.warn(`Original URL: ${url}`);
                             
-                            // Try multiple fallback strategies for MongoDB photos
-                            if (!e.target.dataset.fallbackTried) {
-                              e.target.dataset.fallbackTried = 'true';
+                            // Enhanced multi-level fallback system
+                            if (!e.target.dataset.fallbackLevel) {
+                              e.target.dataset.fallbackLevel = '1';
                               
-                              // Extract filename and try direct Railway backend URL
-                              const filename = url.split('/').pop();
-                              const fallbackUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                              // Level 1: Try direct Railway backend URL with different path
+                              const filename = url.split('/').pop().split('?')[0]; // Remove query params
+                              const railwayUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
                               
-                              console.log(`🔄 Trying fallback URL: ${fallbackUrl}`);
-                              e.target.src = fallbackUrl;
-                            } else if (!e.target.dataset.demoFallbackTried) {
-                              e.target.dataset.demoFallbackTried = 'true';
+                              console.log(`🔄 Level 1 fallback: ${railwayUrl}`);
+                              e.target.src = railwayUrl;
                               
-                              // Try demo images as final fallback
+                            } else if (e.target.dataset.fallbackLevel === '1') {
+                              e.target.dataset.fallbackLevel = '2';
+                              
+                              // Level 2: Try alternative Railway paths
+                              const filename = url.split('/').pop().split('?')[0];
+                              const altUrl = `https://tirebackend-production.up.railway.app/files/${filename}`;
+                              
+                              console.log(`🔄 Level 2 fallback: ${altUrl}`);
+                              e.target.src = altUrl;
+                              
+                            } else if (e.target.dataset.fallbackLevel === '2') {
+                              e.target.dataset.fallbackLevel = '3';
+                              
+                              // Level 3: Try demo images
                               const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
                               const demoUrl = demoImages[idx % demoImages.length];
                               
-                              console.log(`🔄 Trying demo fallback: ${demoUrl}`);
+                              console.log(`🔄 Level 3 fallback (demo): ${demoUrl}`);
                               e.target.src = demoUrl;
+                              
+                            } else if (e.target.dataset.fallbackLevel === '3') {
+                              e.target.dataset.fallbackLevel = '4';
+                              
+                              // Level 4: Try placeholder image
+                              console.log(`🔄 Level 4 fallback: placeholder image`);
+                              e.target.src = '/images/default-profile.png';
+                              
                             } else {
-                              // All fallbacks failed - show error placeholder
+                              // Final fallback: Show styled error message
+                              console.error(`💥 All image fallbacks failed for: ${url}`);
                               e.target.style.display = 'none';
+                              
                               if (!e.target.nextElementSibling?.classList?.contains('photo-error')) {
                                 e.target.insertAdjacentHTML('afterend', 
-                                  '<span class="photo-error" style="color: #dc3545; font-size: 11px; background: #f8d7da; padding: 2px 6px; border-radius: 3px; display: inline-block; margin: 1px;">📷 Photo unavailable</span>'
+                                  `<div class="photo-error" style="
+                                    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+                                    border: 1px solid #f5c6cb;
+                                    border-radius: 6px;
+                                    padding: 8px;
+                                    margin: 2px;
+                                    text-align: center;
+                                    color: #721c24;
+                                    font-size: 11px;
+                                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                                    min-width: 80px;
+                                    min-height: 60px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;
+                                    align-items: center;
+                                  ">
+                                    <div style="font-size: 16px; margin-bottom: 4px;">📷</div>
+                                    <div style="font-weight: bold;">Image Failed</div>
+                                    <div style="font-size: 9px; opacity: 0.8;">File missing or corrupted</div>
+                                  </div>`
                                 );
                               }
                             }
