@@ -63,11 +63,33 @@ function TTODashboard() {
             
             // If it's just a filename, add the full path
             return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+          }) : [],
+          // Map tirePhotoUrls to photos for table display compatibility
+          photos: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+            // If already a full URL, use as is
+            if (photoUrl.startsWith('http')) return photoUrl;
+            
+            // If it's a relative path, construct full Railway URL
+            if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+              const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+            }
+            
+            // If it's just a filename, add the full path
+            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
           }) : []
         }));
         
         setRequests(processedRequests);
         console.log('📊 TTO Dashboard: Successfully loaded', processedRequests.length, 'tire requests with photos');
+        console.log('🖼️ TTO Dashboard: Sample photo data:', processedRequests.length > 0 ? {
+          firstRequest: {
+            id: processedRequests[0].id,
+            tirePhotoUrls: processedRequests[0].tirePhotoUrls?.length || 0,
+            photos: processedRequests[0].photos?.length || 0,
+            samplePhoto: processedRequests[0].photos?.[0] || 'No photos'
+          }
+        } : 'No requests found');
       } else {
         console.log('❌ TTO Dashboard: MongoDB API error:', response.status, response.statusText);
         throw new Error(`API error: ${response.status}`);
@@ -290,8 +312,14 @@ function TTODashboard() {
                         className="photo-thumbnail"
                         onClick={() => openPhotoModal(req.photos)}
                         onError={(e) => {
-                          e.target.style.display = 'none';
-                          e.target.nextSibling.style.display = 'inline-block';
+                          console.warn('❌ TTO Dashboard: Photo failed to load:', req.photos[0]);
+                          // Try fallback with demo images
+                          if (!e.target.src.includes('tire') && req.photos[0]) {
+                            e.target.src = '/images/tire.jpeg';
+                          } else {
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'inline-block';
+                          }
                         }}
                       />
                       <span 
@@ -300,20 +328,44 @@ function TTODashboard() {
                           fontSize: '12px', 
                           color: '#666',
                           cursor: 'pointer',
-                          textDecoration: 'underline'
+                          textDecoration: 'underline',
+                          padding: '4px 8px',
+                          background: '#f8f9fa',
+                          border: '1px solid #ddd',
+                          borderRadius: '4px'
                         }}
                         onClick={() => openPhotoModal(req.photos)}
                       >
                         📷 View ({req.photos.length})
                       </span>
                       {req.photos.length > 1 && (
-                        <span style={{ fontSize: '10px', color: '#999', display: 'block' }}>
+                        <span style={{ fontSize: '10px', color: '#999', display: 'block', marginTop: '2px' }}>
                           +{req.photos.length - 1} more
                         </span>
                       )}
                     </div>
+                  ) : req.tirePhotoUrls && req.tirePhotoUrls.length > 0 ? (
+                    <div className="photo-thumbnail-container">
+                      <img 
+                        src={req.tirePhotoUrls[0]} 
+                        alt="Tire Photo"
+                        className="photo-thumbnail"
+                        onClick={() => openPhotoModal(req.tirePhotoUrls)}
+                        onError={(e) => {
+                          console.warn('❌ TTO Dashboard: Tire photo URL failed to load:', req.tirePhotoUrls[0]);
+                          e.target.src = '/images/tire.jpeg';
+                        }}
+                      />
+                      {req.tirePhotoUrls.length > 1 && (
+                        <span style={{ fontSize: '10px', color: '#999', display: 'block', marginTop: '2px' }}>
+                          +{req.tirePhotoUrls.length - 1} more
+                        </span>
+                      )}
+                    </div>
                   ) : (
-                    <span style={{ fontSize: '12px', color: '#999' }}>No photos</span>
+                    <span style={{ fontSize: '12px', color: '#999', fontStyle: 'italic' }}>
+                      📷 No photos
+                    </span>
                   )}
                 </td>
                 <td>
