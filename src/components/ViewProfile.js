@@ -66,26 +66,38 @@ function ViewProfile() {
           throw new Error(`MongoDB API error: ${response.status}`);
         }
       } catch (mongoError) {
-        console.warn('MongoDB connection failed, using fallback data:', mongoError);
+        console.error('MongoDB connection failed:', mongoError);
         
-        // Fallback demo data based on current user
-        const fallbackData = {
-          employeeId: employeeId,
-          name: currentUser.name || 'Employee Name',
-          email: generateEmail(employeeId, currentUser.name),
-          position: getPositionByRole(currentUser.role),
-          department: currentUser.department || 'IT Solutions',
-          phone: `+94 77 ${Math.floor(Math.random() * 9000000) + 1000000}`,
-          address: 'SLT Office, Colombo',
-          age: '28',
-          joinDate: '2023-01-15',
-          status: 'Active',
-          skills: ['JavaScript', 'React', 'MongoDB'],
-          projects: ['Tire Management System']
-        };
+        // Instead of fallback demo data, show error and ask user to contact admin
+        setEmployeeData(null);
+        setError('❌ Failed to load employee data from database. Please contact system administrator or try again later.');
         
-        setEmployeeData(fallbackData);
-        setError('⚠️ Using demo data (MongoDB connection unavailable)');
+        // Optional: Provide basic info from localStorage if available
+        if (currentUser.name) {
+          setEmployeeData({
+            employeeId: employeeId,
+            name: currentUser.name,
+            email: generateEmail(employeeId, currentUser.name),
+            position: getPositionByRole(currentUser.role),
+            department: currentUser.department || 'Unknown Department',
+            phone: 'Contact Admin for Details',
+            address: 'Contact Admin for Details',
+            age: 'Contact Admin for Details',
+            joinDate: 'Contact Admin for Details',
+            status: 'Unknown',
+            skills: [],
+            projects: [],
+            // Set other fields as unavailable
+            salary: null,
+            manager: null,
+            workLocation: null,
+            experience: null,
+            qualification: null,
+            emergencyContact: null,
+            employeeType: 'Unknown'
+          });
+          setError('⚠️ Limited employee data available. Full details require database connection. Please contact IT support.');
+        }
       } finally {
         setLoading(false);
       }
@@ -162,6 +174,61 @@ function ViewProfile() {
           </div>
         )}
         
+        {!loading && !employeeData && error && (
+          <div className="no-data-container" style={{
+            textAlign: 'center',
+            padding: '50px',
+            background: '#fff',
+            borderRadius: '10px',
+            border: '1px solid #e74c3c',
+            margin: '20px'
+          }}>
+            <h2 style={{ color: '#e74c3c', marginBottom: '20px' }}>⚠️ Unable to Load Employee Data</h2>
+            <p style={{ fontSize: '16px', color: '#555', marginBottom: '20px' }}>
+              We couldn't retrieve your employee information from the database.
+            </p>
+            <div style={{
+              background: '#f8d7da',
+              border: '1px solid #f5c6cb',
+              borderRadius: '5px',
+              padding: '15px',
+              margin: '20px 0',
+              color: '#721c24'
+            }}>
+              <strong>Error Details:</strong> {error}
+            </div>
+            <div style={{ marginTop: '30px' }}>
+              <button 
+                onClick={() => window.location.reload()} 
+                style={{
+                  background: '#3498db',
+                  color: 'white',
+                  border: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '5px',
+                  marginRight: '10px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔄 Try Again
+              </button>
+              <Link 
+                to="/contact" 
+                style={{
+                  background: '#e74c3c',
+                  color: 'white',
+                  textDecoration: 'none',
+                  padding: '10px 20px',
+                  borderRadius: '5px',
+                  display: 'inline-block'
+                }}
+              >
+                📞 Contact IT Support
+              </Link>
+            </div>
+          </div>
+        )}
+        
         {!loading && employeeData && (
           <div className="profile-content">
             <img src="/images/default-profile.png" alt="Employee" className="profile-photo" />
@@ -175,9 +242,15 @@ function ViewProfile() {
                 <p><strong>Email:</strong> {employeeData.email}</p>
                 <p><strong>Position:</strong> {employeeData.position}</p>
                 <p><strong>Department:</strong> {employeeData.department}</p>
-                <p><strong>Employee Type:</strong> {employeeData.employeeType}</p>
-                <p><strong>Phone Number:</strong> {employeeData.phone}</p>
-                <p><strong>Address:</strong> {employeeData.address}</p>
+                {employeeData.employeeType && employeeData.employeeType !== 'Unknown' && (
+                  <p><strong>Employee Type:</strong> {employeeData.employeeType}</p>
+                )}
+                {employeeData.phone && employeeData.phone !== 'Contact Admin for Details' && (
+                  <p><strong>Phone Number:</strong> {employeeData.phone}</p>
+                )}
+                {employeeData.address && employeeData.address !== 'Contact Admin for Details' && (
+                  <p><strong>Address:</strong> {employeeData.address}</p>
+                )}
                 {employeeData.workLocation && (
                   <p><strong>Work Location:</strong> {employeeData.workLocation}</p>
                 )}
@@ -186,9 +259,15 @@ function ViewProfile() {
               {/* Personal Information */}
               <div className="info-section" style={{ marginTop: '20px' }}>
                 <h3 style={{ color: '#2c3e50', borderBottom: '2px solid #e74c3c', paddingBottom: '5px', marginBottom: '15px' }}>👤 Personal Information</h3>
-                <p><strong>Age:</strong> {employeeData.age} years</p>
-                <p><strong>Join Date:</strong> {employeeData.joinDate}</p>
-                <p><strong>Status:</strong> <span style={{ color: 'green', fontWeight: 'bold' }}>{employeeData.status}</span></p>
+                {employeeData.age && employeeData.age !== 'Contact Admin for Details' && (
+                  <p><strong>Age:</strong> {employeeData.age} years</p>
+                )}
+                {employeeData.joinDate && employeeData.joinDate !== 'Contact Admin for Details' && (
+                  <p><strong>Join Date:</strong> {employeeData.joinDate}</p>
+                )}
+                {employeeData.status && employeeData.status !== 'Unknown' && (
+                  <p><strong>Status:</strong> <span style={{ color: employeeData.status === 'Active' ? 'green' : 'orange', fontWeight: 'bold' }}>{employeeData.status}</span></p>
+                )}
                 {employeeData.experience && (
                   <p><strong>Experience:</strong> {employeeData.experience} years</p>
                 )}
@@ -244,19 +323,30 @@ function ViewProfile() {
                     </ul>
                   </div>
                 )}
+                
+                {/* Show message if no professional data available */}
+                {!employeeData.manager && !employeeData.salary && (!employeeData.skills || employeeData.skills.length === 0) && (!employeeData.projects || employeeData.projects.length === 0) && (
+                  <p style={{ fontStyle: 'italic', color: '#7f8c8d' }}>
+                    Professional details not available in database. Contact HR for complete information.
+                  </p>
+                )}
               </div>
 
               {/* MongoDB Data Source Indicator */}
               <div style={{ 
                 marginTop: '20px', 
                 padding: '10px', 
-                background: '#d5edda', 
-                border: '1px solid #c3e6cb', 
+                background: error && error.includes('Limited') ? '#fff3cd' : '#d5edda', 
+                border: `1px solid ${error && error.includes('Limited') ? '#ffeaa7' : '#c3e6cb'}`, 
                 borderRadius: '5px',
                 fontSize: '12px',
-                color: '#155724'
+                color: error && error.includes('Limited') ? '#856404' : '#155724'
               }}>
-                <strong>🗄️ Data Source:</strong> {error ? 'Demo Data (MongoDB unavailable)' : 'MongoDB Atlas Employee Collection'}
+                <strong>🗄️ Data Source:</strong> {
+                  error && error.includes('Failed') ? 'Database Connection Failed' :
+                  error && error.includes('Limited') ? 'Limited Data Available (Database Connection Issues)' : 
+                  'MongoDB Atlas Employee Collection - Real Employee Data'
+                }
               </div>
             </div>
           </div>
