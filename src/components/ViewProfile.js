@@ -1,83 +1,105 @@
 import React, { useState, useEffect } from 'react';
 import './ViewProfile.css';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 function ViewProfile() {
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  const [currentUser, setCurrentUser] = useState(null);
   const [employeeData, setEmployeeData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const navigate = useNavigate();
+  const [error, setError] = useState('');
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
+
+  // Get current user data from localStorage (set during login)
+  const currentUser = JSON.parse(localStorage.getItem('currentUser') || '{}');
+  const employeeId = currentUser.id;
 
   useEffect(() => {
-    // Get current user from localStorage
-    const user = JSON.parse(localStorage.getItem('currentUser') || '{}');
-    setCurrentUser(user);
-    
-    // Fetch employee details from MongoDB
-    fetchEmployeeData(user.id);
-  }, []);
-
-  const fetchEmployeeData = async (employeeId) => {
-    if (!employeeId) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log('🔍 Fetching employee data from MongoDB...', employeeId);
-      
-      // Try to fetch employee data from Railway backend connected to MongoDB
-      const response = await fetch(`https://tirebackend-production.up.railway.app/api/employees/${employeeId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        console.log('✅ Employee data fetched from MongoDB:', data);
-        setEmployeeData(data);
-        setError(null);
-      } else {
-        throw new Error(`Failed to fetch employee data: ${response.status}`);
+    const fetchEmployeeData = async () => {
+      if (!employeeId) {
+        setError('Employee ID not found. Please login first.');
+        setLoading(false);
+        return;
       }
-    } catch (error) {
-      console.error('❌ Error fetching employee data:', error);
-      console.log('📝 Using fallback demo data...');
-      
-      // Fallback: Use demo data if MongoDB is unavailable
-      const demoEmployeeData = {
-        employeeId: employeeId,
-        name: currentUser?.name || 'Employee Name',
-        email: generateEmail(employeeId, currentUser?.name),
-        department: currentUser?.department || 'IT Solutions',
-        position: getPositionByRole(currentUser?.role),
-        phone: `+94 71 ${Math.floor(Math.random() * 9000000) + 1000000}`,
-        address: 'SLT Office, Lotus Road, Colombo 01',
-        joinDate: '2022-01-15',
-        age: Math.floor(Math.random() * 15) + 25, // Random age between 25-40
-        status: 'Active'
-      };
-      
-      setEmployeeData(demoEmployeeData);
-      setError('Using demo data - MongoDB connection unavailable');
-    } finally {
-      setLoading(false);
-    }
+
+      try {
+        console.log('🔍 Fetching employee data from MongoDB for ID:', employeeId);
+        
+        // Try MongoDB employee collection via Railway backend
+        const response = await fetch(`https://tirebackend-production.up.railway.app/api/employees/${employeeId}`, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (response.ok) {
+          const mongoData = await response.json();
+          console.log('✅ MongoDB employee data loaded:', mongoData);
+          
+          setEmployeeData({
+            employeeId: mongoData.employeeId || employeeId,
+            name: mongoData.name || currentUser.name,
+            email: mongoData.email || generateEmail(employeeId, mongoData.name || currentUser.name),
+            position: getPositionByRole(mongoData.role || currentUser.role),
+            department: mongoData.department || currentUser.department,
+            phone: mongoData.phone || `+94 77 ${Math.floor(Math.random() * 9000000) + 1000000}`,
+            address: mongoData.address || 'SLT Office, Colombo',
+            age: mongoData.age || '28',
+            joinDate: mongoData.joinDate || '2023-01-15',
+            status: mongoData.status || 'Active',
+            skills: mongoData.skills || ['JavaScript', 'React', 'Node.js'],
+            projects: mongoData.projects || ['Tire Management System']
+          });
+          
+          setError('');
+        } else {
+          throw new Error(`MongoDB API error: ${response.status}`);
+        }
+      } catch (mongoError) {
+        console.warn('MongoDB connection failed, using fallback data:', mongoError);
+        
+        // Fallback demo data based on current user
+        const fallbackData = {
+          employeeId: employeeId,
+          name: currentUser.name || 'Employee Name',
+          email: generateEmail(employeeId, currentUser.name),
+          position: getPositionByRole(currentUser.role),
+          department: currentUser.department || 'IT Solutions',
+          phone: `+94 77 ${Math.floor(Math.random() * 9000000) + 1000000}`,
+          address: 'SLT Office, Colombo',
+          age: '28',
+          joinDate: '2023-01-15',
+          status: 'Active',
+          skills: ['JavaScript', 'React', 'MongoDB'],
+          projects: ['Tire Management System']
+        };
+        
+        setEmployeeData(fallbackData);
+        setError('⚠️ Using demo data (MongoDB connection unavailable)');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEmployeeData();
+  }, [employeeId, currentUser.name, currentUser.role, currentUser.department]);
+
+  // Generate email based on employee ID and name
+  const generateEmail = (empId, name) => {
+    if (!empId || !name) return 'employee@slt.lk';
+    const firstName = name.split(' ')[0].toLowerCase();
+    return `${firstName}.${empId.toLowerCase()}@slt.lk`;
   };
 
+  // Get position based on role
   const getPositionByRole = (role) => {
-    const positions = {
+    const roleMap = {
       'employee': 'Software Engineer',
       'engineer': 'Senior Engineer', 
-      'manager': 'Department Manager',
-      'tto': 'Transport Officer',
-      'seller': 'Sales Representative'
+      'manager': 'Manager',
+      'tto': 'Technical Operations Officer',
+      'user': 'System User'
     };
-    return positions[role] || 'Staff Member';
+    return roleMap[role?.toLowerCase()] || 'Staff Member';
   };
 
   const handleLogoutClick = () => {
@@ -85,36 +107,29 @@ function ViewProfile() {
   };
 
   const confirmLogout = () => {
-    setShowLogoutModal(false);
+    // Clear all authentication data
     localStorage.removeItem('currentUser');
     localStorage.removeItem('isAuthenticated');
-    navigate('/login'); // 👈 Redirect to login page
+    localStorage.removeItem('user');
+    localStorage.removeItem('userEmail');
+    setShowLogoutModal(false);
+    
+    // Redirect to login page
+    window.location.href = '/login';
   };
 
   const cancelLogout = () => {
     setShowLogoutModal(false);
   };
 
-  // Generate email based on employee ID and name
-  const generateEmail = (empId, name) => {
-    if (!empId || !name) return 'employee@slt.lk';
-    
-    const firstName = name.split(' ')[0].toLowerCase();
-    const empNumber = empId.replace('EMP', '');
-    return `${firstName}.emp${empNumber}@slt.lk`;
-  };
-
   return (
     <div className="profile-page">
       <header className="profile-header">
-  <Link to="/home" className="back-link">← Back to Home</Link>
-  <img src="/images/logo.png" alt="SLT Logo" className="slt-logo" />
-  <h1>Employee Profile</h1>
-
-  {/* Logout button in top-right */}
-  <button className="logout-button-header" onClick={handleLogoutClick}>🚪 Logout</button>
-</header>
-
+        <Link to="/home" className="back-link">← Back to Home</Link>
+        <img src="/images/logo.png" alt="SLT Logo" className="slt-logo" />
+        <h1>Employee Profile</h1>
+        <button className="logout-button-header" onClick={handleLogoutClick}>🚪 Logout</button>
+      </header>
 
       <div className="profile-container">
         {loading && (
@@ -177,12 +192,11 @@ function ViewProfile() {
           <p>🏢 Sri Lanka Telecom PLC<br />Lotus Road, P.O.Box 503, Colombo 01</p>
         </div>
       </footer>
-      
+
       <div className="copyright">
         © 2025 Sri Lanka Telecom. All Rights Reserved.
       </div>
 
-      {/* Logout Modal */}
       {showLogoutModal && (
         <div className="logout-modal">
           <div className="logout-box">
