@@ -35,7 +35,8 @@ function Login() {
     }
 
     try {
-      // Try to authenticate with MongoDB employee collection
+      // Try to authenticate with MongoDB employee collection via Railway backend
+      console.log('🔍 Attempting MongoDB employee authentication...'); // Debug log
       const response = await fetch('https://tirebackend-production.up.railway.app/api/auth/login', {
         method: 'POST',
         headers: {
@@ -68,7 +69,7 @@ function Login() {
           department: userData.department
         }));
         
-        setMessage('Login successful! Welcome to the Tire Management System.');
+        setMessage('✅ Login successful! Employee authenticated from MongoDB. Welcome to the Tire Management System.');
         setTimeout(() => {
           navigate('/home');
         }, 1000);
@@ -86,16 +87,18 @@ function Login() {
         { 
           employeeId: 'EMP001', 
           password: 'Kaushalya417#', 
-          name: 'Manager Kaushalya', 
-          role: 'manager',
-          department: 'Management'
+          name: 'Chalani Kaushalya', 
+          role: 'employee',
+          department: 'IT Solutions',
+          position: 'Software Engineer'
         },
         { 
           employeeId: 'EMP002', 
           password: 'saman123', 
           name: 'Engineer Saman', 
           role: 'engineer',
-          department: 'Technical'
+          department: 'Technical',
+          position: 'Senior Engineer'
         },
         { 
           employeeId: 'EMP003', 
@@ -133,7 +136,7 @@ function Login() {
           department: validEmployee.department
         }));
         
-        setMessage('Login successful! (Demo Mode) Welcome to the Tire Management System.');
+        setMessage('✅ Login successful! (Demo Mode - MongoDB unavailable) Welcome to the Tire Management System.');
         setTimeout(() => {
           navigate('/home');
         }, 1000);
