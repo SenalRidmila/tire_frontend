@@ -76,16 +76,10 @@ function Home() {
         </ul>
 
         <div className="profile-menu" onClick={toggleDropdown}>
-          <div className="user-info" style={{ marginRight: '10px', fontSize: '14px' }}>
-            {currentUser?.name || 'User'} ({currentUser?.role || 'N/A'})
-          </div>
           <div className="notification-icon">🔔</div>
           {dropdownOpen && (
             <div className="dropdown">
               <p onClick={handleViewProfile}>👤 View Profile</p>
-              {currentUser?.role && (
-                <p onClick={navigateToDashboard}>📊 My Dashboard</p>
-              )}
               <p onClick={handleLogout}>🚪 Logout</p>
             </div>
           )}
