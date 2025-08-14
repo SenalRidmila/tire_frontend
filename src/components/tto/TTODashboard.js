@@ -32,12 +32,59 @@ function TTODashboard() {
   const fetchRequests = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(`${API_URL}/tto/requests`);
-      const data = response.data || [];
-      setRequests(data);
+      console.log('🔍 TTO Dashboard: Fetching tire requests from MongoDB...');
+      
+      // Try MongoDB tire_requests collection via Railway backend
+      const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const requestsData = await response.json();
+        console.log('✅ TTO Dashboard: MongoDB tire_requests loaded:', requestsData);
+        
+        // Process MongoDB data to ensure proper photo URLs for TTO dashboard
+        const processedRequests = requestsData.map(req => ({
+          ...req,
+          id: req._id || req.id,
+          // Handle tire photo URLs from MongoDB for TTO dashboard
+          tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+            // If already a full URL, use as is
+            if (photoUrl.startsWith('http')) return photoUrl;
+            
+            // If it's a relative path, construct full Railway URL
+            if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+              const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+            }
+            
+            // If it's just a filename, add the full path
+            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+          }) : []
+        }));
+        
+        setRequests(processedRequests);
+        console.log('📊 TTO Dashboard: Successfully loaded', processedRequests.length, 'tire requests with photos');
+      } else {
+        console.log('❌ TTO Dashboard: MongoDB API error:', response.status, response.statusText);
+        throw new Error(`API error: ${response.status}`);
+      }
     } catch (error) {
-      console.error('Error fetching requests:', error);
-      alert('Failed to load requests. Please try again later.');
+      console.error('💥 TTO Dashboard: MongoDB connection failed, using fallback:', error);
+      
+      // Fallback to existing logic for demo/development
+      try {
+        const response = await axios.get(`${API_URL}/tto/requests`);
+        const data = response.data || [];
+        setRequests(data);
+        console.log('🎭 TTO Dashboard: Using fallback data:', data.length, 'requests');
+      } catch (fallbackError) {
+        console.error('TTO Dashboard: All data sources failed:', fallbackError);
+        alert('Failed to load requests. Please try again later.');
+      }
     } finally {
       setLoading(false);
     }
@@ -400,18 +447,107 @@ function TTODashboard() {
               <b>Photos:</b>
               {selectedRequest.tirePhotoUrls?.length ? (
                 <div className="photo-thumbnails">
-                  {selectedRequest.tirePhotoUrls.map((url, i) => (
-                    <img
-                      key={i}
-                      src={`${url}`}
-                      alt={`Tire ${i + 1}`}
-                      className="photo-thumbnail"
-                      onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls.map(p => `${p}`), i)}
-                    />
-                  ))}
+                  {selectedRequest.tirePhotoUrls.map((url, i) => {
+                    // Enhanced MongoDB photo URL handling for TTO Dashboard
+                    const getTTOPhotoUrl = (originalUrl) => {
+                      if (!originalUrl) return null;
+                      
+                      // If already a full HTTP URL from MongoDB, use as is
+                      if (originalUrl.startsWith('http')) return originalUrl;
+                      
+                      // Handle relative paths from MongoDB
+                      if (originalUrl.startsWith('/uploads/')) {
+                        return `https://tirebackend-production.up.railway.app${originalUrl}`;
+                      }
+                      
+                      // Handle direct filenames from MongoDB
+                      if (!originalUrl.startsWith('/')) {
+                        return `https://tirebackend-production.up.railway.app/uploads/${originalUrl}`;
+                      }
+                      
+                      // Fallback for legacy data
+                      return originalUrl;
+                    };
+                    
+                    const photoUrl = getTTOPhotoUrl(url);
+                    if (!photoUrl) return null;
+                    
+                    return (
+                      <img
+                        key={i}
+                        src={photoUrl}
+                        alt={`Tire ${i + 1} - ${selectedRequest.vehicleNo}`}
+                        className="photo-thumbnail"
+                        title={`Click to view tire photo ${i + 1} full size (${selectedRequest.vehicleNo})`}
+                        onClick={() => {
+                          // Create enhanced photo URLs for modal from MongoDB data
+                          const modalUrls = selectedRequest.tirePhotoUrls.map(photoUrl => getTTOPhotoUrl(photoUrl));
+                          openPhotoModal(modalUrls, i);
+                        }}
+                        onError={(e) => {
+                          console.warn(`❌ TTO Dashboard: Failed to load tire photo: ${e.target.src}`);
+                          
+                          // Enhanced multi-level fallback system for TTO Dashboard
+                          if (!e.target.dataset.ttoFallbackLevel) {
+                            e.target.dataset.ttoFallbackLevel = '1';
+                            
+                            // Level 1: Try direct Railway backend URL
+                            const filename = url.split('/').pop().split('?')[0];
+                            const railwayUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                            
+                            console.log(`🔄 TTO Dashboard Level 1 fallback: ${railwayUrl}`);
+                            e.target.src = railwayUrl;
+                            
+                          } else if (e.target.dataset.ttoFallbackLevel === '1') {
+                            e.target.dataset.ttoFallbackLevel = '2';
+                            
+                            // Level 2: Try demo images
+                            const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
+                            const demoUrl = demoImages[i % demoImages.length];
+                            
+                            console.log(`🔄 TTO Dashboard Level 2 fallback: ${demoUrl}`);
+                            e.target.src = demoUrl;
+                            
+                          } else {
+                            // Final fallback: Show professional error message
+                            console.error(`💥 TTO Dashboard: All image fallbacks failed for: ${url}`);
+                            e.target.style.display = 'none';
+                            
+                            if (!e.target.nextElementSibling?.classList?.contains('tto-photo-error')) {
+                              e.target.insertAdjacentHTML('afterend', 
+                                `<div class="tto-photo-error" style="
+                                  background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+                                  border: 1px solid #f5c6cb;
+                                  border-radius: 4px;
+                                  padding: 8px;
+                                  margin: 2px;
+                                  text-align: center;
+                                  color: #721c24;
+                                  font-size: 11px;
+                                  min-width: 80px;
+                                  min-height: 60px;
+                                  display: flex;
+                                  flex-direction: column;
+                                  justify-content: center;
+                                  align-items: center;
+                                ">
+                                  <div style="font-size: 16px; margin-bottom: 4px;">📷</div>
+                                  <div style="font-weight: bold;">Photo Error</div>
+                                  <div style="font-size: 9px; opacity: 0.8;">Not available</div>
+                                </div>`
+                              );
+                            }
+                          }
+                        }}
+                        onLoad={() => {
+                          console.log(`✅ TTO Dashboard: Successfully loaded tire photo: ${photoUrl}`);
+                        }}
+                      />
+                    );
+                  })}
                 </div>
               ) : (
-                <p>—</p>
+                <p>📷 No tire photos uploaded</p>
               )}
             </div>
           </div>

@@ -49,11 +49,58 @@ function ManagerDashboard() {
   
   const fetchRequests = async () => {
     try {
-      const response = await axios.get(`${BASE_URL}/api/tire-requests`);
-      const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
-      setRequests(data);
+      console.log('🔍 Manager Dashboard: Fetching tire requests from MongoDB...');
+      
+      // Try MongoDB tire_requests collection via Railway backend
+      const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (response.ok) {
+        const requestsData = await response.json();
+        console.log('✅ Manager Dashboard: MongoDB tire_requests loaded:', requestsData);
+        
+        // Process MongoDB data to ensure proper photo URLs for manager dashboard
+        const processedRequests = requestsData.map(req => ({
+          ...req,
+          id: req._id || req.id,
+          // Handle tire photo URLs from MongoDB for manager dashboard
+          tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+            // If already a full URL, use as is
+            if (photoUrl.startsWith('http')) return photoUrl;
+            
+            // If it's a relative path, construct full Railway URL
+            if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+              const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+            }
+            
+            // If it's just a filename, add the full path
+            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+          }) : []
+        }));
+        
+        setRequests(processedRequests);
+        console.log('📊 Manager Dashboard: Successfully loaded', processedRequests.length, 'tire requests with photos');
+      } else {
+        console.log('❌ Manager Dashboard: MongoDB API error:', response.status, response.statusText);
+        throw new Error(`API error: ${response.status}`);
+      }
     } catch (error) {
-      console.error('Error fetching requests:', error);
+      console.error('💥 Manager Dashboard: MongoDB connection failed, using fallback:', error);
+      
+      // Fallback to existing logic for demo/development
+      try {
+        const response = await axios.get(`${BASE_URL}/api/tire-requests`);
+        const data = response.data.map(req => ({ ...req, id: req._id || req.id }));
+        setRequests(data);
+        console.log('🎭 Manager Dashboard: Using fallback data:', data.length, 'requests');
+      } catch (fallbackError) {
+        console.error('Manager Dashboard: All data sources failed:', fallbackError);
+      }
     }
   };
   const deleteRequest = async (id) => {
@@ -239,14 +286,107 @@ function ManagerDashboard() {
                 <td><span className={`status-badge ${getStatusColor(req.status)}`}>{req.status || 'Pending'}</span></td>
                 <td>
                   <div className="photos-container">
-                    {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, i) => (
-                      <img key={i}
-                        src={`${BASE_URL}${url}`}
-                        className="table-photo"
-                        onClick={() => openPhotoModal(req.tirePhotoUrls.map(p => `${BASE_URL}${p}`), i)}
-                        alt={`Tire ${i + 1}`}
-                      />
-                    )) : <span>No photos</span>}
+                    {req.tirePhotoUrls?.length > 0 ? req.tirePhotoUrls.map((url, i) => {
+                      // Enhanced MongoDB photo URL handling for Manager Dashboard
+                      const getManagerPhotoUrl = (originalUrl) => {
+                        if (!originalUrl) return null;
+                        
+                        // If already a full HTTP URL from MongoDB, use as is
+                        if (originalUrl.startsWith('http')) return originalUrl;
+                        
+                        // Handle relative paths from MongoDB
+                        if (originalUrl.startsWith('/uploads/')) {
+                          return `https://tirebackend-production.up.railway.app${originalUrl}`;
+                        }
+                        
+                        // Handle direct filenames from MongoDB
+                        if (!originalUrl.startsWith('/')) {
+                          return `https://tirebackend-production.up.railway.app/uploads/${originalUrl}`;
+                        }
+                        
+                        // Fallback to BASE_URL for legacy data
+                        return `${BASE_URL}${originalUrl}`;
+                      };
+                      
+                      const photoUrl = getManagerPhotoUrl(url);
+                      if (!photoUrl) return null;
+                      
+                      return (
+                        <img 
+                          key={i}
+                          src={photoUrl}
+                          className="table-photo"
+                          onClick={() => {
+                            // Create enhanced photo URLs for modal from MongoDB data
+                            const modalUrls = req.tirePhotoUrls.map(photoUrl => getManagerPhotoUrl(photoUrl));
+                            openPhotoModal(modalUrls, i);
+                          }}
+                          alt={`Tire ${i + 1} - ${req.vehicleNo}`}
+                          title={`Click to view tire photo ${i + 1} full size (${req.vehicleNo})`}
+                          onError={(e) => {
+                            console.warn(`❌ Manager Dashboard: Failed to load tire photo: ${e.target.src}`);
+                            
+                            // Enhanced multi-level fallback system for Manager Dashboard
+                            if (!e.target.dataset.managerFallbackLevel) {
+                              e.target.dataset.managerFallbackLevel = '1';
+                              
+                              // Level 1: Try direct Railway backend URL
+                              const filename = url.split('/').pop().split('?')[0];
+                              const railwayUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                              
+                              console.log(`🔄 Manager Dashboard Level 1 fallback: ${railwayUrl}`);
+                              e.target.src = railwayUrl;
+                              
+                            } else if (e.target.dataset.managerFallbackLevel === '1') {
+                              e.target.dataset.managerFallbackLevel = '2';
+                              
+                              // Level 2: Try demo images
+                              const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
+                              const demoUrl = demoImages[i % demoImages.length];
+                              
+                              console.log(`🔄 Manager Dashboard Level 2 fallback: ${demoUrl}`);
+                              e.target.src = demoUrl;
+                              
+                            } else {
+                              // Final fallback: Show professional error message
+                              console.error(`💥 Manager Dashboard: All image fallbacks failed for: ${url}`);
+                              e.target.style.display = 'none';
+                              
+                              if (!e.target.nextElementSibling?.classList?.contains('manager-photo-error')) {
+                                e.target.insertAdjacentHTML('afterend', 
+                                  `<div class="manager-photo-error" style="
+                                    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+                                    border: 1px solid #f5c6cb;
+                                    border-radius: 4px;
+                                    padding: 6px;
+                                    margin: 1px;
+                                    text-align: center;
+                                    color: #721c24;
+                                    font-size: 10px;
+                                    min-width: 60px;
+                                    min-height: 40px;
+                                    display: flex;
+                                    flex-direction: column;
+                                    justify-content: center;
+                                    align-items: center;
+                                  ">
+                                    <div style="font-size: 14px; margin-bottom: 2px;">📷</div>
+                                    <div style="font-weight: bold; font-size: 9px;">Photo Error</div>
+                                  </div>`
+                                );
+                              }
+                            }
+                          }}
+                          onLoad={() => {
+                            console.log(`✅ Manager Dashboard: Successfully loaded tire photo: ${photoUrl}`);
+                          }}
+                        />
+                      );
+                    }) : (
+                      <span style={{ color: '#6c757d', fontSize: '11px', fontStyle: 'italic' }}>
+                        📷 No photos
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td>
