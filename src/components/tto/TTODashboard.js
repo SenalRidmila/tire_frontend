@@ -261,6 +261,7 @@ function TTODashboard() {
               <th>Wear</th>
               <th>Pattern</th>
               <th>Officer</th>
+              <th>Photos</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
@@ -280,6 +281,41 @@ function TTODashboard() {
                 <td>{req.wearIndicator}</td>
                 <td>{req.wearPattern}</td>
                 <td>{req.officerServiceNo}</td>
+                <td>
+                  {req.photos && req.photos.length > 0 ? (
+                    <div className="photo-thumbnail-container">
+                      <img 
+                        src={req.photos[0].url || req.photos[0]} 
+                        alt="Tire Photo"
+                        className="photo-thumbnail"
+                        onClick={() => openPhotoModal(req.photos)}
+                        onError={(e) => {
+                          e.target.style.display = 'none';
+                          e.target.nextSibling.style.display = 'inline-block';
+                        }}
+                      />
+                      <span 
+                        style={{ 
+                          display: 'none', 
+                          fontSize: '12px', 
+                          color: '#666',
+                          cursor: 'pointer',
+                          textDecoration: 'underline'
+                        }}
+                        onClick={() => openPhotoModal(req.photos)}
+                      >
+                        📷 View ({req.photos.length})
+                      </span>
+                      {req.photos.length > 1 && (
+                        <span style={{ fontSize: '10px', color: '#999', display: 'block' }}>
+                          +{req.photos.length - 1} more
+                        </span>
+                      )}
+                    </div>
+                  ) : (
+                    <span style={{ fontSize: '12px', color: '#999' }}>No photos</span>
+                  )}
+                </td>
                 <td>
                   <span className={`status-badge ${getStatusColor(req.status)}`}>
                     {(req.status || '').replace(/_/g, ' ').toUpperCase()}
