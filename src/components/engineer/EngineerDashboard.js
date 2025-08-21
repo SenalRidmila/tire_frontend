@@ -13,6 +13,15 @@ const BASE_URL = process.env.NODE_ENV === 'development'
 // "Engineer can act on" statuses (adjust if your API returns different)
 const ENGINEER_PENDING_STATUSES = ['TTO_APPROVED', 'ENGINEER_PENDING', 'MANAGER_APPROVED'];
 
+// Helper function to check if status should be visible to engineer
+const isEngineerPendingStatus = (status) => {
+  if (!status) return false;
+  const upperStatus = status.toUpperCase();
+  return ENGINEER_PENDING_STATUSES.includes(upperStatus) || 
+         upperStatus === 'TTO_APPROVED' || 
+         upperStatus === 'MANAGER_APPROVED';
+};
+
 function EngineerDashboard() {
   const location = useLocation();
 
@@ -35,109 +44,78 @@ function EngineerDashboard() {
   // -------------------- Fetch --------------------
   const fetchRequests = async () => {
     try {
-      // Try multiple possible endpoints
-      let response;
-      let apiSuccess = false;
-      const possibleEndpoints = [
-        API_URL, // /api/tire-requests
-        API_URL.replace('/tire-requests', '/requests'), // /api/requests
-        API_URL.replace('/api/tire-requests', '/tire-requests'), // /tire-requests
-        API_URL.replace('/api/tire-requests', '/requests'), // /requests
-        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/api/requests`,
-        `${process.env.NODE_ENV === 'development' ? process.env.REACT_APP_API_URL : ''}/requests`
-      ];
+      console.log('🔍 Engineer Dashboard: Fetching tire requests from MongoDB...');
       
-      for (const endpoint of possibleEndpoints) {
-        try {
-          console.log(`Trying endpoint: ${endpoint}`);
-          response = await axios.get(endpoint);
-          
-          // Check if response is actually JSON data and not HTML
-          if (response.data && typeof response.data === 'object' && !response.data.includes && Array.isArray(response.data)) {
-            console.log(`✅ Success with endpoint: ${endpoint}`, response.data);
-            apiSuccess = true;
-            break;
-          } else if (response.data && typeof response.data === 'string' && response.data.includes('<!doctype html>')) {
-            console.log(`❌ Endpoint returned HTML instead of JSON: ${endpoint}`);
-            continue;
-          } else {
-            console.log(`⚠️ Unexpected response format from: ${endpoint}`, typeof response.data);
-            continue;
-          }
-        } catch (endpointError) {
-          console.log(`❌ Failed endpoint: ${endpoint}`, endpointError.response?.status || endpointError.message);
-          continue;
-        }
-      }
+      // Try MongoDB tire_requests collection via Railway backend (same as TTO Dashboard)
+      const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
       
-      if (apiSuccess && response) {
-        console.log('📡 API Response:', response.data);
-        setRequests(Array.isArray(response.data) ? response.data : []);
-        setUsingMockData(false);
+      if (response.ok) {
+        const requestsData = await response.json();
+        console.log('✅ Engineer Dashboard: MongoDB tire_requests loaded:', requestsData);
         
-        // Debug – see all unique statuses coming from API
-        const unique = [...new Set((response.data || []).map(r => r.status))];
-        console.log('Engineer unique statuses =>', unique);
+        // Process MongoDB data to ensure proper photo URLs for engineer dashboard
+        const processedRequests = requestsData.map(req => ({
+          ...req,
+          id: req._id || req.id,
+          // Handle tire photo URLs from MongoDB for engineer dashboard
+          tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+            // If already a full URL, use as is
+            if (photoUrl.startsWith('http')) return photoUrl;
+            
+            // If it's a relative path, construct full Railway URL
+            if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+              const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+            }
+            
+            // If it's just a filename, add the full path
+            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+          }) : [],
+          // Map tirePhotoUrls to photos for table display compatibility
+          photos: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+            // If already a full URL, use as is
+            if (photoUrl.startsWith('http')) return photoUrl;
+            
+            // If it's a relative path, construct full Railway URL
+            if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
+              const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
+              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+            }
+            
+            // If it's just a filename, add the full path
+            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+          }) : []
+        }));
+        
+        setRequests(processedRequests);
+        setUsingMockData(false);
+        console.log('📊 Engineer Dashboard: Successfully loaded', processedRequests.length, 'tire requests with photos');
+        
+        // Debug – see all unique statuses coming from MongoDB
+        const unique = [...new Set(processedRequests.map(r => r.status))];
+        console.log('🔍 Engineer unique statuses from MongoDB =>', unique);
+        
       } else {
-        // Always use mock data when API is unavailable
-        console.warn('🔄 All API endpoints failed, loading mock data for testing...');
-        setUsingMockData(true);
-        const mockData = [
-          {
-            id: 'mock-1',
-            vehicleNo: 'ABC-1234',
-            vehicleType: 'Car',
-            vehicleBrand: 'Toyota',
-            vehicleModel: 'Corolla',
-            userSection: 'IT Department',
-            tireSize: '195/65R15',
-            noOfTires: '4',
-            noOfTubes: '0',
-            presentKm: '50000',
-            previousKm: '45000',
-            wearIndicator: 'Yes',
-            wearPattern: 'Even',
-            officerServiceNo: 'OFF001',
-            status: 'TTO_APPROVED',
-            comments: 'Need urgent replacement',
-            tirePhotoUrls: []
-          },
-          {
-            id: 'mock-2',
-            vehicleNo: 'XYZ-5678',
-            vehicleType: 'Van',
-            vehicleBrand: 'Nissan',
-            vehicleModel: 'NV200',
-            userSection: 'Transport',
-            tireSize: '205/60R16',
-            noOfTires: '2',
-            noOfTubes: '2',
-            presentKm: '75000',
-            previousKm: '70000',
-            wearIndicator: 'No',
-            wearPattern: 'One Edge',
-            officerServiceNo: 'OFF002',
-            status: 'ENGINEER_PENDING',
-            comments: 'Routine maintenance',
-            tirePhotoUrls: []
-          }
-        ];
-        setRequests(mockData);
-        setUsingMockData(true);
-        console.log('✅ Mock data loaded:', mockData);
+        console.log('❌ Engineer Dashboard: MongoDB API error:', response.status, response.statusText);
+        throw new Error(`API error: ${response.status}`);
       }
-    } catch (err) {
-      console.error('💥 Critical error in fetchRequests:', err);
+    } catch (error) {
+      console.error('💥 Engineer Dashboard: MongoDB connection failed, using fallback mock data:', error);
       
-      // Always provide fallback data in case of any error
-      const fallbackData = [
+      // Fallback to mock data for development
+      const mockData = [
         {
-          id: 'fallback-1',
-          vehicleNo: 'DEMO-001',
+          id: 'mock-tto-1',
+          vehicleNo: 'CAR-2024-001',
           vehicleType: 'Car',
           vehicleBrand: 'Toyota',
           vehicleModel: 'Prius',
-          userSection: 'Demo Department',
+          userSection: 'Transport Department',
           tireSize: '215/60R16',
           noOfTires: '4',
           noOfTubes: '0',
@@ -145,15 +123,34 @@ function EngineerDashboard() {
           previousKm: '55000',
           wearIndicator: 'Yes',
           wearPattern: 'Even',
-          officerServiceNo: 'DEMO001',
+          officerServiceNo: 'ENG001',
           status: 'TTO_APPROVED',
-          comments: 'Demo request for testing',
+          comments: 'TTO approved request awaiting engineer review',
+          tirePhotoUrls: []
+        },
+        {
+          id: 'mock-mgr-1', 
+          vehicleNo: 'VAN-2024-002',
+          vehicleType: 'Van',
+          vehicleBrand: 'Nissan',
+          vehicleModel: 'NV200',
+          userSection: 'Admin Department',
+          tireSize: '185/65R15',
+          noOfTires: '4',
+          noOfTubes: '0',
+          presentKm: '45000',
+          previousKm: '40000',
+          wearIndicator: 'Yes',
+          wearPattern: 'Uneven',
+          officerServiceNo: 'MGR001',
+          status: 'MANAGER_APPROVED',
+          comments: 'Manager approved request awaiting engineer review',
           tirePhotoUrls: []
         }
       ];
-      setRequests(fallbackData);
+      setRequests(mockData);
       setUsingMockData(true);
-      console.log('🔧 Fallback data loaded due to error');
+      console.log('🎭 Engineer Dashboard: Using fallback mock data:', mockData.length, 'requests');
     }
   };
 
@@ -163,12 +160,8 @@ function EngineerDashboard() {
 
   // -------------------- Split into pending / processed --------------------
   useEffect(() => {
-    const pend = requests.filter(
-      r => r.status && ENGINEER_PENDING_STATUSES.includes(r.status.toUpperCase())
-    );
-    const proc = requests.filter(
-      r => !r.status || !ENGINEER_PENDING_STATUSES.includes(r.status.toUpperCase())
-    );
+    const pend = requests.filter(r => isEngineerPendingStatus(r.status));
+    const proc = requests.filter(r => !isEngineerPendingStatus(r.status));
     setPendingRequests(pend);
     setProcessedRequests(proc);
   }, [requests]);
@@ -180,78 +173,57 @@ function EngineerDashboard() {
     if (requestId) setHighlightedRequestId(requestId);
   }, [location.search]);
 
+  // -------------------- Scroll to highlighted row --------------------
   useEffect(() => {
     if (highlightedRequestId && rowRefs.current[highlightedRequestId]) {
-      rowRefs.current[highlightedRequestId].scrollIntoView({ behavior: 'smooth', block: 'center' });
-      setTimeout(() => alert('Engineer Request Loaded from Email 🔧'), 400);
+      rowRefs.current[highlightedRequestId].scrollIntoView({ behavior: 'smooth' });
     }
-  }, [highlightedRequestId, pendingRequests, processedRequests]);
+  }, [highlightedRequestId, pendingRequests]);
 
   // -------------------- Actions --------------------
-  const approveLocal = (id) => {
-    setRequests(prev =>
-      prev.map(r => (r.id === id ? { ...r, status: 'ENGINEER_APPROVED' } : r))
-    );
-  };
-
-  const rejectLocal = (id, reason) => {
-    setRequests(prev =>
-      prev.map(r => (r.id === id ? { ...r, status: 'ENGINEER_REJECTED', rejectReason: reason } : r))
-    );
-  };
-
   const handleApprove = async (id) => {
-    if (!window.confirm('Approve this request?')) return;
+    if (!window.confirm('Approve this request for tire replacement?')) return;
     try {
-      // call backend if you want
       await axios.post(`${API_URL}/${id}/engineer-approve`);
-      // optimistic local update
-      approveLocal(id);
-      // OR re-fetch (commented)
-      // await fetchRequests();
-    } catch (err) {
-      console.error(err);
+      alert('Request approved successfully.');
+      await fetchRequests();
+    } catch (error) {
+      console.error('Approve error:', error);
       alert('Failed to approve request.');
     }
   };
 
   const handleReject = async () => {
     if (!rejectReason.trim()) {
-      alert('Please enter a reason.');
+      alert('Please provide a reason for rejection.');
       return;
     }
     if (!window.confirm('Reject this request?')) return;
 
     try {
-      // call backend if you want
       await axios.post(`${API_URL}/${rejectingId}/engineer-reject`, { reason: rejectReason.trim() });
-      // optimistic local update
-      rejectLocal(rejectingId, rejectReason.trim());
-      // OR re-fetch (commented)
-      // await fetchRequests();
-
-      // close & cleanup
+      alert('Request rejected successfully.');
       setShowRejectModal(false);
       setRejectReason('');
       setRejectingId(null);
-    } catch (err) {
-      console.error(err);
+      await fetchRequests();
+    } catch (error) {
+      console.error('Reject error:', error);
       alert('Failed to reject request.');
     }
   };
+
   const deleteRequest = async (id) => {
-  if (!window.confirm('Are you sure you want to delete this request?')) return;
-
-  try {
-    await axios.delete(`${API_URL}/${id}`);
-    setRequests(prev => prev.filter(r => r.id !== id));
-    alert('Request deleted successfully.');
-  } catch (err) {
-    console.error('Error deleting request:', err);
-    alert('Failed to delete request.');
-  }
-};
-
+    if (!window.confirm('Are you sure you want to delete this request?')) return;
+    try {
+      await axios.delete(`${API_URL}/${id}`);
+      setRequests(prev => prev.filter(r => r.id !== id));
+      alert('Request deleted successfully.');
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      alert('Failed to delete request.');
+    }
+  };
 
   const openReject = (id) => {
     setRejectingId(id);
@@ -259,23 +231,32 @@ function EngineerDashboard() {
     setShowRejectModal(true);
   };
 
-  const openPhoto = (photos = [], start = 0) => {
-    const urls = photos.map(u => (u.startsWith('http') ? u : `${BASE_URL}${u}`));
-    setPhotoModal({ show: true, photos: urls, currentIndex: start });
+  const closeReject = () => {
+    setShowRejectModal(false);
+    setRejectReason('');
+    setRejectingId(null);
   };
-  const closePhoto = () => setPhotoModal({ show: false, photos: [], currentIndex: 0 });
-  const nextPhoto = () =>
-    setPhotoModal(p => ({ ...p, currentIndex: (p.currentIndex + 1) % p.photos.length }));
-  const prevPhoto = () =>
-    setPhotoModal(p => ({
-      ...p,
-      currentIndex: p.currentIndex === 0 ? p.photos.length - 1 : p.currentIndex - 1,
+
+  const openPhotoModal = (photos, index = 0) => {
+    setPhotoModal({ show: true, photos, currentIndex: index });
+  };
+
+  const closePhotoModal = () => {
+    setPhotoModal({ show: false, photos: [], currentIndex: 0 });
+  };
+
+  const nextPhoto = () => {
+    setPhotoModal(prev => ({ ...prev, currentIndex: (prev.currentIndex + 1) % prev.photos.length }));
+  };
+
+  const prevPhoto = () => {
+    setPhotoModal(prev => ({
+      ...prev,
+      currentIndex: prev.currentIndex === 0 ? prev.photos.length - 1 : prev.currentIndex - 1
     }));
-
-  const getRowRef = (id) => (el) => {
-    if (id) rowRefs.current[id] = el;
   };
 
+  // -------------------- Components --------------------
   const ViewButton = ({ onClick }) => (
     <button title="View" onClick={onClick} style={{ marginRight: 6 }}>👁️</button>
   );
@@ -318,13 +299,13 @@ function EngineerDashboard() {
                 <th>Type</th>
                 <th>Brand</th>
                 <th>Model</th>
+                <th>Section</th>
                 <th>Tire Size</th>
                 <th>Tires</th>
                 <th>Tubes</th>
-                <th>Present KM</th>
-                <th>Prev KM</th>
-                <th>Wear</th>
-                <th>Pattern</th>
+                <th>Present Km</th>
+                <th>Wear Indicator</th>
+                <th>Wear Pattern</th>
                 <th>Officer</th>
                 <th>Status</th>
                 <th>Photos</th>
@@ -333,40 +314,48 @@ function EngineerDashboard() {
             </thead>
             <tbody>
               {pendingRequests.map(req => (
-                <tr
+                <tr 
                   key={req.id}
-                  ref={getRowRef(req.id)}
-                  className={req.id === highlightedRequestId ? 'highlighted-row' : ''}
+                  ref={el => rowRefs.current[req.id] = el}
+                  style={{
+                    backgroundColor: highlightedRequestId === req.id ? '#ffffcc' : 'transparent'
+                  }}
                 >
                   <td>{req.id?.substring(0, 8)}...</td>
                   <td>{req.vehicleNo}</td>
                   <td>{req.vehicleType}</td>
                   <td>{req.vehicleBrand}</td>
                   <td>{req.vehicleModel}</td>
+                  <td>{req.userSection}</td>
                   <td>{req.tireSize}</td>
                   <td>{req.noOfTires}</td>
                   <td>{req.noOfTubes}</td>
                   <td>{req.presentKm}</td>
-                  <td>{req.previousKm}</td>
                   <td>{req.wearIndicator}</td>
                   <td>{req.wearPattern}</td>
                   <td>{req.officerServiceNo}</td>
-                  <td>{req.status}</td>
                   <td>
-                    {req.tirePhotoUrls?.length ? (
-                      <div className="photo-thumbnails">
-                        {req.tirePhotoUrls.map((u, i) => (
-                          <img
-                            key={i}
-                            src={`${BASE_URL}${u}`}
-                            alt={`Tire ${i + 1}`}
-                            className="photo-thumbnail"
-                            onClick={() => openPhoto(req.tirePhotoUrls, i)}
-                          />
-                        ))}
-                      </div>
+                    <span style={{ 
+                      padding: '4px 8px', 
+                      borderRadius: '4px', 
+                      fontSize: '12px',
+                      backgroundColor: req.status === 'TTO_APPROVED' ? '#e7f3ff' : '#f0f0f0',
+                      color: req.status === 'TTO_APPROVED' ? '#0066cc' : '#666'
+                    }}>
+                      {req.status?.replace(/_/g, ' ')}
+                    </span>
+                  </td>
+                  <td>
+                    {req.photos && req.photos.length > 0 ? (
+                      <span style={{ cursor: 'pointer', color: 'blue' }} onClick={() => openPhotoModal(req.photos)}>
+                        📷 {req.photos.length}
+                      </span>
+                    ) : req.tirePhotoUrls && req.tirePhotoUrls.length > 0 ? (
+                      <span style={{ cursor: 'pointer', color: 'blue' }} onClick={() => openPhotoModal(req.tirePhotoUrls)}>
+                        📷 {req.tirePhotoUrls.length}
+                      </span>
                     ) : (
-                      <span>—</span>
+                      '—'
                     )}
                   </td>
                   <td>
@@ -374,7 +363,6 @@ function EngineerDashboard() {
 <ApproveButton onClick={() => handleApprove(req.id)} />
 <RejectButton onClick={() => openReject(req.id)} />
 <button title="Delete" onClick={() => deleteRequest(req.id)}>🗑️</button>
-
                   </td>
                 </tr>
               ))}
@@ -397,16 +385,8 @@ function EngineerDashboard() {
                 <th>Type</th>
                 <th>Brand</th>
                 <th>Model</th>
-                <th>Tire Size</th>
-                <th>Tires</th>
-                <th>Tubes</th>
-                <th>Present KM</th>
-                <th>Prev KM</th>
-                <th>Wear</th>
-                <th>Pattern</th>
-                <th>Officer</th>
+                <th>Section</th>
                 <th>Status</th>
-                <th>Photos</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -418,38 +398,22 @@ function EngineerDashboard() {
                   <td>{req.vehicleType}</td>
                   <td>{req.vehicleBrand}</td>
                   <td>{req.vehicleModel}</td>
-                  <td>{req.tireSize}</td>
-                  <td>{req.noOfTires}</td>
-                  <td>{req.noOfTubes}</td>
-                  <td>{req.presentKm}</td>
-                  <td>{req.previousKm}</td>
-                  <td>{req.wearIndicator}</td>
-                  <td>{req.wearPattern}</td>
-                  <td>{req.officerServiceNo}</td>
-                  <td>{req.status}</td>
+                  <td>{req.userSection}</td>
                   <td>
-                    {req.tirePhotoUrls?.length ? (
-                      <div className="photo-thumbnails">
-                        {req.tirePhotoUrls.map((u, i) => (
-                          <img
-                            key={i}
-                            src={`${BASE_URL}${u}`}
-                            alt={`Tire ${i + 1}`}
-                            className="photo-thumbnail"
-                            onClick={() => openPhoto(req.tirePhotoUrls, i)}
-                          />
-                        ))}
-                      </div>
-                    ) : (
-                      <span>—</span>
-                    )}
+                    <span style={{ 
+                      padding: '4px 8px', 
+                      borderRadius: '4px', 
+                      fontSize: '12px',
+                      backgroundColor: req.status?.includes('APPROVED') ? '#e7f5e7' : '#ffe7e7',
+                      color: req.status?.includes('APPROVED') ? '#006600' : '#cc0000'
+                    }}>
+                      {req.status?.replace(/_/g, ' ')}
+                    </span>
                   </td>
                   <td>
-        {/* ✅ View Button */}
-        <button title="View" onClick={() => setSelectedRequest(req)}>👁️</button>
-<button title="Delete" onClick={() => deleteRequest(req.id)}>🗑️</button>
-
-      </td>
+                    <ViewButton onClick={() => setSelectedRequest(req)} />
+                    <button title="Delete" onClick={() => deleteRequest(req.id)}>🗑️</button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -457,18 +421,17 @@ function EngineerDashboard() {
         )}
       </section>
 
-      {/* ============== Right side details panel ============== */}
-      <aside className="details-panel">
-        {!selectedRequest ? (
-          <p>Select a request (👁️) to view details here.</p>
-        ) : (
-          <div className="request-details">
-            <h3>Request Details (ID: {selectedRequest.id?.substring(0, 8)}...)</h3>
+      {/* ================== Request details modal ================== */}
+      {selectedRequest && (
+        <div className="modal-overlay" onClick={() => setSelectedRequest(null)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Request Details</h3>
+            <p><b>ID:</b> {selectedRequest.id}</p>
             <p><b>Vehicle No:</b> {selectedRequest.vehicleNo}</p>
             <p><b>Type:</b> {selectedRequest.vehicleType}</p>
             <p><b>Brand:</b> {selectedRequest.vehicleBrand}</p>
             <p><b>Model:</b> {selectedRequest.vehicleModel}</p>
-            <p><b>User Section:</b> {selectedRequest.userSection}</p>
+            <p><b>Section:</b> {selectedRequest.userSection}</p>
             <p><b>Tire Size:</b> {selectedRequest.tireSize}</p>
             <p><b>No of Tires:</b> {selectedRequest.noOfTires}</p>
             <p><b>No of Tubes:</b> {selectedRequest.noOfTubes}</p>
@@ -478,74 +441,82 @@ function EngineerDashboard() {
             <p><b>Wear Pattern:</b> {selectedRequest.wearPattern}</p>
             <p><b>Officer Service No:</b> {selectedRequest.officerServiceNo}</p>
             <p><b>Status:</b> {selectedRequest.status}</p>
-            {selectedRequest.rejectReason && (
-              <p><b>Reject Reason:</b> {selectedRequest.rejectReason}</p>
-            )}
             <p><b>Comments:</b> {selectedRequest.comments || '—'}</p>
-
-            <div>
-              <b>Photos:</b>
-              {selectedRequest.tirePhotoUrls?.length ? (
-                <div className="photo-thumbnails">
-                  {selectedRequest.tirePhotoUrls.map((u, i) => (
+            
+            {selectedRequest.photos && selectedRequest.photos.length > 0 && (
+              <div>
+                <p><b>Photos:</b></p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {selectedRequest.photos.map((photo, i) => (
                     <img
                       key={i}
-                      src={`${BASE_URL}${u}`}
+                      src={photo.url || photo}
                       alt={`Tire ${i + 1}`}
-                      className="photo-thumbnail"
-                      onClick={() => openPhoto(selectedRequest.tirePhotoUrls, i)}
+                      style={{ width: '100px', height: '100px', objectFit: 'cover', cursor: 'pointer' }}
+                      onClick={() => openPhotoModal(selectedRequest.photos, i)}
                     />
                   ))}
                 </div>
-              ) : (
-                <p>—</p>
-              )}
-            </div>
-
-            {ENGINEER_PENDING_STATUSES.includes(
-              (selectedRequest.status || '').toUpperCase()
-            ) && (
-              <div className="action-buttons">
-                <button onClick={() => handleApprove(selectedRequest.id)}>Approve</button>
-                <button onClick={() => openReject(selectedRequest.id)}>Reject</button>
               </div>
             )}
-          </div>
-        )}
-      </aside>
 
-      {/* ============== Reject modal ============== */}
-      {showRejectModal && (
-        <div className="modal-overlay" onClick={() => setShowRejectModal(false)}>
-          <div className="modal" onClick={e => e.stopPropagation()}>
-          <h3>Reject Request</h3>
-          <textarea
-            rows={4}
-            placeholder="Enter a reason..."
-            value={rejectReason}
-            onChange={e => setRejectReason(e.target.value)}
-          />
-          <div className="modal-buttons">
-            <button onClick={() => setShowRejectModal(false)}>Cancel</button>
-            <button onClick={handleReject}>Reject</button>
+            {selectedRequest.tirePhotoUrls && selectedRequest.tirePhotoUrls.length > 0 && (
+              <div>
+                <p><b>Tire Photos:</b></p>
+                <div style={{ display: 'flex', gap: '10px', flexWrap: 'wrap' }}>
+                  {selectedRequest.tirePhotoUrls.map((photoUrl, i) => (
+                    <img
+                      key={i}
+                      src={photoUrl}
+                      alt={`Tire ${i + 1}`}
+                      style={{ width: '100px', height: '100px', objectFit: 'cover', cursor: 'pointer' }}
+                      onClick={() => openPhotoModal(selectedRequest.tirePhotoUrls, i)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="modal-buttons">
+              <button onClick={() => setSelectedRequest(null)}>Close</button>
+            </div>
           </div>
         </div>
-      </div>
       )}
 
-      {/* ============== Photo modal ============== */}
+      {/* ================== Reject modal ================== */}
+      {showRejectModal && (
+        <div className="modal-overlay" onClick={closeReject}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h3>Reject Request</h3>
+            <p>Please provide a reason for rejecting this request:</p>
+            <textarea
+              placeholder="Enter rejection reason..."
+              value={rejectReason}
+              onChange={(e) => setRejectReason(e.target.value)}
+              rows={4}
+            />
+            <div className="modal-buttons">
+              <button onClick={closeReject}>Cancel</button>
+              <button onClick={handleReject}>Reject</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ================== Photo modal ================== */}
       {photoModal.show && (
-        <div className="photo-modal" onClick={closePhoto}>
+        <div className="photo-modal" onClick={closePhotoModal}>
           <div className="photo-modal-content" onClick={e => e.stopPropagation()}>
-            <span className="close" onClick={closePhoto}>&times;</span>
+            <span className="close" onClick={closePhotoModal}>&times;</span>
+            <div className="photo-counter">{photoModal.currentIndex + 1} / {photoModal.photos.length}</div>
             <img
-              src={photoModal.photos[photoModal.currentIndex]}
-              alt={`Tire ${photoModal.currentIndex + 1}`}
-              style={{ maxWidth: '100%', maxHeight: '80vh' }}
+              src={photoModal.photos[photoModal.currentIndex]?.url || photoModal.photos[photoModal.currentIndex]}
+              alt="Full size"
             />
             <div className="photo-navigation">
-              <button onClick={prevPhoto}>⬅</button>
-              <button onClick={nextPhoto}>➡</button>
+              <button onClick={prevPhoto}>Previous</button>
+              <button onClick={nextPhoto}>Next</button>
             </div>
           </div>
         </div>
