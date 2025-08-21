@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import axios from 'axios';
 import './TTODashboard.css';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 const API_URL = process.env.NODE_ENV === 'development' 
   ? `${process.env.REACT_APP_API_URL}/api/tire-requests`
@@ -11,6 +11,7 @@ const BASE_URL = process.env.NODE_ENV === 'development'
   : '';
 
 function TTODashboard() {
+  const location = useLocation();
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [rejectionReason, setRejectionReason] = useState('');
@@ -22,12 +23,36 @@ function TTODashboard() {
   const [imageLoading, setImageLoading] = useState(false);
   const [photoZoom, setPhotoZoom] = useState(1);
   const [touchStart, setTouchStart] = useState(null);
+  const [highlightedRequestId, setHighlightedRequestId] = useState(null);
 
+  const rowRefs = useRef({});
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchRequests();
   }, []);
+
+  // -------------------- Handle URL param highlight --------------------
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const requestId = params.get('id') || params.get('requestId');
+    if (requestId) {
+      setHighlightedRequestId(requestId);
+      console.log('🎯 TTO Dashboard: Highlighting request from URL:', requestId);
+    }
+  }, [location.search]);
+
+  // -------------------- Scroll to highlighted row --------------------
+  useEffect(() => {
+    if (highlightedRequestId && rowRefs.current[highlightedRequestId]) {
+      setTimeout(() => {
+        rowRefs.current[highlightedRequestId].scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'center' 
+        });
+      }, 500); // Delay to ensure data is loaded
+    }
+  }, [highlightedRequestId, requests]);
 
   const fetchRequests = async () => {
     setLoading(true);
@@ -290,7 +315,15 @@ function TTODashboard() {
           </thead>
           <tbody>
             {data.map(req => (
-              <tr key={req.id}>
+              <tr 
+                key={req.id}
+                ref={el => rowRefs.current[req.id] = el}
+                style={{
+                  backgroundColor: highlightedRequestId === req.id ? '#fff3cd' : 'transparent',
+                  border: highlightedRequestId === req.id ? '2px solid #ffc107' : 'none',
+                  transition: 'background-color 0.3s ease'
+                }}
+              >
                 <td>{req.id?.substring(0, 8)}...</td>
                 <td>{req.vehicleNo}</td>
                 <td>{req.vehicleType}</td>
@@ -417,6 +450,35 @@ function TTODashboard() {
           <p>Process manager-approved tire requests for replacement.</p>
         </div>
       </div>
+
+      {/* Notification banner for highlighted request */}
+      {highlightedRequestId && (
+        <div style={{
+          backgroundColor: '#d1ecf1',
+          border: '1px solid #bee5eb',
+          borderRadius: '4px',
+          padding: '12px',
+          margin: '20px',
+          color: '#0c5460',
+          textAlign: 'center'
+        }}>
+          <strong>📧 Email Notification:</strong> Request ID {highlightedRequestId.substring(0, 8)}... 
+          has been highlighted for your review. Please scroll down to see the request details.
+          <button 
+            onClick={() => setHighlightedRequestId(null)}
+            style={{
+              marginLeft: '10px',
+              background: 'none',
+              border: 'none',
+              color: '#0c5460',
+              cursor: 'pointer',
+              textDecoration: 'underline'
+            }}
+          >
+            Dismiss
+          </button>
+        </div>
+      )}
 
       <div className="tto-content">
         {renderTable('Manager Approved Requests - TTO Processing', pendingRequests, true)}

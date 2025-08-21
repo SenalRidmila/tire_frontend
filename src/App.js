@@ -64,6 +64,7 @@ function App() {
 
         {/* TTO specific routes - direct access */}
         <Route path="/tto/approved-requests" element={<TTOApprovedRequests />} />
+        <Route path="/tto/view-request" element={<TTODashboard />} />
         <Route path="/order-tires" element={<TireOrder />} />
         <Route path="/order-tires/:requestId" element={<TireOrder />} />
 
