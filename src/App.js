@@ -53,6 +53,7 @@ function App() {
         <Route path="/tto-dashboard" element={<TTODashboard />} />
         <Route path="/tto" element={<TTODashboard />} />
         <Route path="/engineer-dashboard" element={<EngineerDashboard />} />
+        <Route path="/engineer" element={<EngineerDashboard />} />
         <Route path="/seller-dashboard" element={<SellerDashboard vendorEmail="seller.email=slttransportofficer@gmail.com" />} />
 
         <Route path="/request" element={

@@ -269,28 +269,45 @@ function EngineerDashboard() {
 
   return (
     <div className="engineer-dashboard">
-      <h2>Engineer Dashboard</h2>
-      
-      {usingMockData && (
-        <div style={{
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          borderRadius: '4px',
-          padding: '12px',
-          marginBottom: '20px',
-          color: '#856404'
-        }}>
-          <strong>⚠️ Demo Mode:</strong> Backend unavailable. Showing sample data for testing. 
-          Please check your Railway deployment.
+      {/* Hero Section */}
+      <div className="dashboard-banner" style={{ backgroundImage: `url('/images/tire2.jpeg')` }}>
+        <div className="overlay"></div>
+        <div className="banner-text">
+          <h2>🔧 Engineer Dashboard - Tire Request Review</h2>
+          <p>Review and approve TTO-processed tire replacement requests</p>
         </div>
-      )}
+      </div>
 
-      {/* ================== Pending table ================== */}
-      <section className="table-section">
-        <h3>Pending Requests</h3>
-        {pendingRequests.length === 0 ? (
-          <p>No pending requests.</p>
-        ) : (
+      <div className="dashboard-content" style={{ padding: '20px' }}>
+        {usingMockData && (
+          <div style={{
+            backgroundColor: '#fff3cd',
+            border: '1px solid #ffeaa7',
+            borderRadius: '4px',
+            padding: '12px',
+            marginBottom: '20px',
+            color: '#856404'
+          }}>
+            <strong>⚠️ Demo Mode:</strong> Backend unavailable. Showing sample data for testing. 
+            Please check your Railway deployment.
+          </div>
+        )}
+
+        {/* ================== Pending table ================== */}
+        <section className="table-section">
+          <h3>Pending Requests for Engineer Review</h3>
+          {pendingRequests.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px',
+              backgroundColor: '#f8f9fa',
+              borderRadius: '8px',
+              margin: '20px 0'
+            }}>
+              <h4 style={{ color: '#6c757d', marginBottom: '10px' }}>📋 No Pending Requests</h4>
+              <p style={{ color: '#6c757d' }}>All tire requests have been processed or there are no requests awaiting engineer approval.</p>
+            </div>
+          ) : (
           <table className="request-table">
             <thead>
               <tr>
@@ -521,6 +538,7 @@ function EngineerDashboard() {
           </div>
         </div>
       )}
+      </div> {/* Close dashboard-content */}
     </div>
   );
 }
