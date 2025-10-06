@@ -16,10 +16,10 @@
   - Platform: `Single-page application (SPA)`
   - URI: `https://tire-slt.vercel.app`
 
-### 1.3 Get Application Details
-After creation, note these values:
-- **Application (client) ID:** `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
-- **Directory (tenant) ID:** `xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx`
+### 1.3 Get Application Details ✅ COMPLETED
+Your actual values:
+- **Application (client) ID:** `065f3754-3c30-494b-86bd-ff4ff3b98756`
+- **Directory (tenant) ID:** `875ad673-beae-4720-aca9-1a470796d844`
 
 ## Step 2: Configure Redirect URIs
 
@@ -42,14 +42,12 @@ In your app registration:
    - `User.Read` (to read user profile)
    - `openid`, `profile`, `email` (basic OpenID Connect scopes)
 
-## Step 4: Update Environment Variables
-Replace values in `.env` file:
+## Step 4: Update Environment Variables ✅ COMPLETED
+Values updated in `.env` file:
 
 ```env
-REACT_APP_AZURE_CLIENT_ID=your-actual-client-id-here
-REACT_APP_AZURE_AUTHORITY=https://login.microsoftonline.com/your-tenant-id
-# OR for multi-tenant:
-REACT_APP_AZURE_AUTHORITY=https://login.microsoftonline.com/common
+REACT_APP_AZURE_CLIENT_ID=065f3754-3c30-494b-86bd-ff4ff3b98756
+REACT_APP_AZURE_AUTHORITY=https://login.microsoftonline.com/875ad673-beae-4720-aca9-1a470796d844
 REACT_APP_REDIRECT_URI=https://tire-slt.vercel.app
 ```
 
