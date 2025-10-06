@@ -119,16 +119,16 @@ function Login() {
             <button 
               type="button"
               onClick={handleAzureLogin}
-              disabled={loading}
+              disabled={true}
               style={{
                 width: '100%',
                 padding: '15px 20px',
-                background: '#0078d4',
-                color: 'white',
+                background: '#cccccc',
+                color: '#666666',
                 border: 'none',
                 borderRadius: '6px',
-                cursor: loading ? 'not-allowed' : 'pointer',
-                opacity: loading ? 0.6 : 1,
+                cursor: 'not-allowed',
+                opacity: 0.6,
                 fontSize: '16px',
                 fontWeight: '500',
                 display: 'flex',
@@ -138,24 +138,22 @@ function Login() {
                 boxShadow: '0 2px 4px rgba(0,120,212,0.3)',
                 transition: 'all 0.3s ease'
               }}
-              onMouseOver={(e) => {
-                if (!loading) {
-                  e.target.style.background = '#106ebe';
-                  e.target.style.transform = 'translateY(-1px)';
-                }
-              }}
-              onMouseOut={(e) => {
-                if (!loading) {
-                  e.target.style.background = '#0078d4';
-                  e.target.style.transform = 'translateY(0px)';
-                }
-              }}
+
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
                 <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
               </svg>
-              {loading ? 'Signing in...' : 'Use your organizational Microsoft account'}
+              {'Microsoft Account (Setup Required)'}
             </button>
+            <p style={{ 
+              fontSize: '12px', 
+              color: '#ff6b6b', 
+              textAlign: 'center', 
+              marginTop: '8px',
+              fontWeight: '500'
+            }}>
+              ⚠️ Azure AD App Registration required for Microsoft login
+            </p>
           </div>
           
           {/* OR Divider */}
