@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MsalProvider } from '@azure/msal-react';
 import { PublicClientApplication } from '@azure/msal-browser';
 import { msalConfig } from './config/authConfig';
+import './styles/responsive.css';
 
 import Login from './components/Login';
 import Home from './components/Home';
