@@ -14,8 +14,6 @@ function Login() {
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [authMode, setAuthMode] = useState(authModes.MONGODB);
-  const [showAuthModeSelector, setShowAuthModeSelector] = useState(true);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -67,8 +65,8 @@ function Login() {
     }
 
     try {
-      // Use AuthService for unified authentication
-      AuthService.setAuthMode(authMode);
+      // Use AuthService for unified authentication - always use MongoDB for form login
+      AuthService.setAuthMode(authModes.MONGODB);
       const result = await AuthService.login(userId, password);
       
       if (result.success) {
@@ -88,12 +86,7 @@ function Login() {
     setLoading(false);
   };
 
-  // Handle authentication mode change
-  const handleAuthModeChange = (mode) => {
-    setAuthMode(mode);
-    setMessage('');
-    setFormData({ userId: '', password: '' });
-  };
+
 
   // Check if user is already logged in
   useEffect(() => {
@@ -121,70 +114,64 @@ function Login() {
         <div className="login-left">
           <h2>LOGIN</h2>
           
-          {/* Authentication Mode Selector */}
-          <div className="auth-mode-selector" style={{ marginBottom: '20px' }}>
-            <div style={{ display: 'flex', gap: '10px', justifyContent: 'center', marginBottom: '15px' }}>
-              <button 
-                type="button"
-                onClick={() => handleAuthModeChange(authModes.AZURE_AD)}
-                style={{
-                  padding: '8px 12px',
-                  border: authMode === authModes.AZURE_AD ? '2px solid #0078d4' : '1px solid #ccc',
-                  background: authMode === authModes.AZURE_AD ? '#0078d4' : 'white',
-                  color: authMode === authModes.AZURE_AD ? 'white' : '#333',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                🔐 Azure AD
-              </button>
-              <button 
-                type="button"
-                onClick={() => handleAuthModeChange(authModes.MONGODB)}
-                style={{
-                  padding: '8px 12px',
-                  border: authMode === authModes.MONGODB ? '2px solid #00a86b' : '1px solid #ccc',
-                  background: authMode === authModes.MONGODB ? '#00a86b' : 'white',
-                  color: authMode === authModes.MONGODB ? 'white' : '#333',
-                  borderRadius: '4px',
-                  cursor: 'pointer',
-                  fontSize: '12px'
-                }}
-              >
-                🗄️ Database
-              </button>
-            </div>
+          {/* Microsoft Organizational Login Button */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button 
+              type="button"
+              onClick={handleAzureLogin}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                background: '#0078d4',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                fontSize: '16px',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 2px 4px rgba(0,120,212,0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                if (!loading) {
+                  e.target.style.background = '#106ebe';
+                  e.target.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!loading) {
+                  e.target.style.background = '#0078d4';
+                  e.target.style.transform = 'translateY(0px)';
+                }
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
+              </svg>
+              {loading ? 'Signing in...' : 'Use your organizational Microsoft account'}
+            </button>
+          </div>
+          
+          {/* OR Divider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            margin: '20px 0',
+            color: '#666'
+          }}>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #ddd' }} />
+            <span style={{ padding: '0 15px', fontSize: '14px', fontWeight: '500' }}>OR</span>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #ddd' }} />
           </div>
 
-          {/* Azure AD Login Button */}
-          {authMode === authModes.AZURE_AD ? (
-            <div style={{ textAlign: 'center' }}>
-              <button 
-                type="button"
-                onClick={handleAzureLogin}
-                disabled={loading}
-                style={{
-                  width: '100%',
-                  padding: '12px',
-                  background: '#0078d4',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: loading ? 'not-allowed' : 'pointer',
-                  opacity: loading ? 0.6 : 1,
-                  fontSize: '16px',
-                  marginBottom: '20px'
-                }}
-              >
-                {loading ? 'Redirecting...' : '🔐 Sign in with Azure AD'}
-              </button>
-              <p style={{ fontSize: '14px', color: '#666', textAlign: 'center' }}>
-                Use your organizational Microsoft account to login
-              </p>
-            </div>
-          ) : (
-            <form onSubmit={handleSubmit}>
+          {/* Regular Login Form */}
+          <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label><i className="fa fa-user"></i> User ID</label>
               <input 
@@ -231,7 +218,6 @@ function Login() {
               {loading ? 'Logging in...' : 'Login Now'}
             </button>
           </form>
-          )}
         </div>
 
         <div className="login-right">
