@@ -186,6 +186,10 @@ function RequestForm() {
   const validateField = (name, value, allData = formData) => {
     switch(name) {
       case 'vehicleNo':
+        if (!value.trim()) return 'This field is required';
+        if (value.length > 8) return 'Vehicle number cannot exceed 8 characters';
+        break;
+        
       case 'vehicleType':
       case 'vehicleBrand':
       case 'vehicleModel':
@@ -195,10 +199,25 @@ function RequestForm() {
       case 'officerServiceNo':
       case 'wearIndicator':
       case 'wearPattern':
+        if (!value.trim()) return 'This field is required';
+        break;
+        
       case 'comments':
+        if (value && value.length > 500) return 'Comments cannot exceed 500 characters';
+        break;
+        
       case 'replacementDate':
         if (!value.trim()) return 'This field is required';
         if (name === 'replacementDate' && isNaN(Date.parse(value))) return 'Invalid date';
+        if (name === 'replacementDate' && value) {
+          const selectedDate = new Date(value);
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          selectedDate.setHours(0, 0, 0, 0);
+          if (selectedDate > today) {
+            return 'Cannot set future dates for vehicles already requested during restricted periods';
+          }
+        }
         break;
 
       case 'email':
@@ -207,7 +226,19 @@ function RequestForm() {
         break;
 
       case 'noOfTires':
+        if (!value.trim()) return 'This field is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const tireNum = parseInt(value);
+        if (tireNum < 1 || tireNum > 50) return 'Number of tires must be between 1 and 50';
+        break;
+      
       case 'noOfTubes':
+        if (!value.trim()) return 'This field is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const tubeNum = parseInt(value);
+        if (tubeNum < 0 || tubeNum > 50) return 'Number of tubes must be between 0 and 50';
+        break;
+
       case 'costCenter':
       case 'presentKm':
       case 'previousKm':
@@ -254,6 +285,30 @@ function RequestForm() {
     }
 
     const updatedFormData = { ...formData, [name]: value };
+    
+    // Auto-populate fields based on user section
+    if (name === 'userSection' && value) {
+      const sectionMappings = {
+        'IT': { costCenter: '1001', officerServiceNo: 'IT001' },
+        'HR': { costCenter: '1002', officerServiceNo: 'HR001' },
+        'Finance': { costCenter: '1003', officerServiceNo: 'FIN001' },
+        'Operations': { costCenter: '1004', officerServiceNo: 'OPS001' },
+        'Marketing': { costCenter: '1005', officerServiceNo: 'MKT001' },
+        'Engineering': { costCenter: '1006', officerServiceNo: 'ENG001' },
+        'Logistics': { costCenter: '1007', officerServiceNo: 'LOG001' },
+        'Administration': { costCenter: '1008', officerServiceNo: 'ADM001' },
+        'Security': { costCenter: '1009', officerServiceNo: 'SEC001' },
+        'Maintenance': { costCenter: '1010', officerServiceNo: 'MNT001' }
+      };
+      
+      const mapping = sectionMappings[value];
+      if (mapping) {
+        updatedFormData.costCenter = mapping.costCenter;
+        updatedFormData.officerServiceNo = mapping.officerServiceNo;
+        updatedFormData.email = `${mapping.officerServiceNo.toLowerCase()}@company.com`;
+      }
+    }
+    
     setFormData(updatedFormData);
 
     // Re-validate the field and cross-field dependencies (presentKm, previousKm)
@@ -286,7 +341,31 @@ function RequestForm() {
 
   const handleFileChange = (e) => {
     const files = Array.from(e.target.files);
-    if (files.length > 5) return alert('Only up to 5 photos allowed');
+    
+    // Check file count limit
+    if (files.length > 5) {
+      alert('Only up to 5 photos allowed');
+      return;
+    }
+    
+    // Check file size limit (5MB per file)
+    const maxSize = 5 * 1024 * 1024; // 5MB in bytes
+    const oversizedFiles = files.filter(file => file.size > maxSize);
+    
+    if (oversizedFiles.length > 0) {
+      alert('Image file size must be less than 5MB. Please select smaller images.');
+      return;
+    }
+    
+    // Check file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+    const invalidFiles = files.filter(file => !allowedTypes.includes(file.type));
+    
+    if (invalidFiles.length > 0) {
+      alert('Only image files (JPEG, JPG, PNG, GIF) are allowed');
+      return;
+    }
+    
     setSelectedFiles(files);
     setPreviewUrls(files.map(file => URL.createObjectURL(file)));
   };
@@ -743,7 +822,6 @@ function RequestForm() {
           { name: 'vehicleType', label: 'Vehicle Type' },
           { name: 'vehicleBrand', label: 'Vehicle Brand' },
           { name: 'vehicleModel', label: 'Vehicle Model' },
-          { name: 'userSection', label: 'User Section' },
           { name: 'replacementDate', label: 'Last Replacement Date', type: 'date' },
           { name: 'existingMake', label: 'Make of Existing Tire' },
           { name: 'tireSize', label: 'Tire Size Required' },
@@ -764,11 +842,38 @@ function RequestForm() {
               value={formData[field.name]}
               onChange={handleChange}
               min={['noOfTires','noOfTubes','costCenter','presentKm','previousKm'].includes(field.name) ? 0 : undefined}
+              max={field.name === 'noOfTires' || field.name === 'noOfTubes' ? 50 : undefined}
+              maxLength={field.name === 'vehicleNo' ? 8 : undefined}
               required
             />
             {errors[field.name] && <div className="error-message">{errors[field.name]}</div>}
           </div>
         ))}
+
+        {/* User Section - Dropdown Selection */}
+        <div className="form-group">
+          <label htmlFor="userSection">User Section *</label>
+          <select
+            id="userSection"
+            name="userSection"
+            value={formData.userSection}
+            onChange={handleChange}
+            required
+          >
+            <option value="">Please select your section (Required)</option>
+            <option value="IT">IT Department</option>
+            <option value="HR">Human Resources</option>
+            <option value="Finance">Finance Department</option>
+            <option value="Operations">Operations</option>
+            <option value="Marketing">Marketing</option>
+            <option value="Engineering">Engineering</option>
+            <option value="Logistics">Logistics</option>
+            <option value="Administration">Administration</option>
+            <option value="Security">Security</option>
+            <option value="Maintenance">Maintenance</option>
+          </select>
+          {errors.userSection && <div className="error-message">{errors.userSection}</div>}
+        </div>
 
         <div className="form-group">
           <label htmlFor="wearIndicator">Wear Indicator</label>
