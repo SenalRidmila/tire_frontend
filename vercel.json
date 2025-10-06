@@ -1,0 +1,63 @@
+{
+  "rewrites": [
+    { 
+      "source": "/api/auth/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/auth/$1"
+    },
+    { 
+      "source": "/api/employees/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/employees/$1"
+    },
+    { 
+      "source": "/api/send-email", 
+      "destination": "https://tirebackend-production.up.railway.app/api/send-email"
+    },
+    { 
+      "source": "/api/notifications/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/notifications/$1"
+    },
+    { 
+      "source": "/api/mail/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/mail/$1"
+    },
+    { 
+      "source": "/api/tire-requests/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
+    },
+    { 
+      "source": "/api/tire-requests", 
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests"
+    },
+    { 
+      "source": "/api/tire-orders/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders/$1"
+    },
+    { 
+      "source": "/api/tire-orders", 
+      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders"
+    },
+    { 
+      "source": "/uploads/(.*)", 
+      "destination": "https://tirebackend-production.up.railway.app/uploads/$1"
+    },
+    { 
+      "source": "/images/(.*)", 
+      "destination": "/images/$1"
+    },
+    { "source": "/(.*)", "destination": "/" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Access-Control-Allow-Credentials", "value": "true" },
+        { "key": "Access-Control-Allow-Origin", "value": "*" },
+        { "key": "Access-Control-Allow-Methods", "value": "GET,OPTIONS,PATCH,DELETE,POST,PUT" },
+        { "key": "Access-Control-Allow-Headers", "value": "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version" }
+      ]
+    }
+  ],
+  "env": {
+    "REACT_APP_API_URL": "https://tirebackend-production.up.railway.app"
+  }
+}
