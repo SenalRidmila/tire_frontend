@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import './RequestForm.css';
 
@@ -6,6 +7,7 @@ const API_URL = '/api/tire-requests'; // Using Vercel proxy to avoid CORS
 const BASE_URL = ''; // Using relative paths through Vercel proxy
 
 function RequestForm() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     vehicleNo: '', vehicleType: '', vehicleBrand: '', vehicleModel: '',
     userSection: '', replacementDate: '', existingMake: '', tireSize: '',
@@ -23,6 +25,55 @@ function RequestForm() {
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
   const [usingMockData, setUsingMockData] = useState(false);
+  
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+
+  // Sorting function
+  const sortData = (data, key, direction) => {
+    return [...data].sort((a, b) => {
+      let aVal = a[key];
+      let bVal = b[key];
+
+      // Handle special cases for sorting
+      if (key === 'id') {
+        // Convert to numbers for proper numeric sorting
+        aVal = parseInt(aVal) || 0;
+        bVal = parseInt(bVal) || 0;
+      } else if (key === 'vehicleNo') {
+        // Sort vehicle numbers naturally (e.g., CAR-1, CAR-2, CAR-10)
+        aVal = aVal?.toString().toLowerCase() || '';
+        bVal = bVal?.toString().toLowerCase() || '';
+      } else if (key === 'replacementDate') {
+        // Sort dates properly
+        aVal = new Date(aVal || '1970-01-01');
+        bVal = new Date(bVal || '1970-01-01');
+      } else if (key === 'presentKm' || key === 'previousKm' || key === 'noOfTires' || key === 'noOfTubes') {
+        // Sort numeric values
+        aVal = parseFloat(aVal) || 0;
+        bVal = parseFloat(bVal) || 0;
+      } else {
+        // Sort strings (case-insensitive)
+        aVal = aVal?.toString().toLowerCase() || '';
+        bVal = bVal?.toString().toLowerCase() || '';
+      }
+
+      if (direction === 'asc') {
+        return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
+      } else {
+        return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
+      }
+    });
+  };
+
+  // Handle sort click
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   // Mock data for development/testing when backend is unavailable
   const mockRequests = [
@@ -628,7 +679,11 @@ function RequestForm() {
   const pendingRequests = requests.filter(r => !r.status || r.status.toUpperCase() === 'PENDING');
   const processedRequests = requests.filter(r => r.status && r.status.toUpperCase() !== 'PENDING');
 
-  const renderTable = (title, data) => (
+  const renderTable = (title, data) => {
+    // Sort the data based on current sort configuration
+    const sortedData = sortData(data, sortConfig.key, sortConfig.direction);
+    
+    return (
     <>
       <h3>{title}</h3>
       {data.length === 0 ? (
@@ -637,15 +692,114 @@ function RequestForm() {
         <table className="request-table">
           <thead>
             <tr>
-              <th>Vehicle No.</th><th>Type</th><th>Brand</th><th>Model</th>
-              <th>Section</th><th>Tire Size</th><th>Tires</th><th>Tubes</th>
-              <th>Present Km</th><th>Previous Km</th><th>Wear</th><th>Pattern</th>
-              <th>Officer</th><th>Email</th><th>Status</th><th>Photos</th><th>Actions</th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'id' ? 'active' : ''}`}
+                  onClick={() => handleSort('id')}
+                >
+                  ID {sortConfig.key === 'id' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'vehicleNo' ? 'active' : ''}`}
+                  onClick={() => handleSort('vehicleNo')}
+                >
+                  Vehicle No. {sortConfig.key === 'vehicleNo' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'vehicleType' ? 'active' : ''}`}
+                  onClick={() => handleSort('vehicleType')}
+                >
+                  Type {sortConfig.key === 'vehicleType' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'vehicleBrand' ? 'active' : ''}`}
+                  onClick={() => handleSort('vehicleBrand')}
+                >
+                  Brand {sortConfig.key === 'vehicleBrand' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'vehicleModel' ? 'active' : ''}`}
+                  onClick={() => handleSort('vehicleModel')}
+                >
+                  Model {sortConfig.key === 'vehicleModel' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'userSection' ? 'active' : ''}`}
+                  onClick={() => handleSort('userSection')}
+                >
+                  Section {sortConfig.key === 'userSection' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'tireSize' ? 'active' : ''}`}
+                  onClick={() => handleSort('tireSize')}
+                >
+                  Tire Size {sortConfig.key === 'tireSize' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'noOfTires' ? 'active' : ''}`}
+                  onClick={() => handleSort('noOfTires')}
+                >
+                  Tires {sortConfig.key === 'noOfTires' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'noOfTubes' ? 'active' : ''}`}
+                  onClick={() => handleSort('noOfTubes')}
+                >
+                  Tubes {sortConfig.key === 'noOfTubes' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'presentKm' ? 'active' : ''}`}
+                  onClick={() => handleSort('presentKm')}
+                >
+                  Present Km {sortConfig.key === 'presentKm' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'previousKm' ? 'active' : ''}`}
+                  onClick={() => handleSort('previousKm')}
+                >
+                  Previous Km {sortConfig.key === 'previousKm' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>Wear</th>
+              <th>Pattern</th>
+              <th>Officer</th>
+              <th>Email</th>
+              <th>
+                <button 
+                  className={`sort-header ${sortConfig.key === 'status' ? 'active' : ''}`}
+                  onClick={() => handleSort('status')}
+                >
+                  Status {sortConfig.key === 'status' && (sortConfig.direction === 'asc' ? '↑' : '↓')}
+                </button>
+              </th>
+              <th>Photos</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {data.map(req => (
+            {sortedData.map(req => (
               <tr key={req.id}>
+                <td><strong>#{req.id}</strong></td>
                 <td>{req.vehicleNo}</td>
                 <td>{req.vehicleType}</td>
                 <td>{req.vehicleBrand}</td>
@@ -796,7 +950,8 @@ function RequestForm() {
         </table>
       )}
     </>
-  );
+    );
+  };
 
   return (
     <>
@@ -815,7 +970,17 @@ function RequestForm() {
       )}
 
       <form className="request-form" onSubmit={handleSubmit} noValidate>
-        <h2>TIRE REQUEST FORM</h2>
+        <div className="form-header">
+          <button 
+            type="button" 
+            className="back-button"
+            onClick={() => navigate('/home')}
+            title="Back to Home"
+          >
+            ← Back to Home
+          </button>
+          <h2>TIRE REQUEST FORM</h2>
+        </div>
 
         {[
           { name: 'vehicleNo', label: 'Vehicle No.' },

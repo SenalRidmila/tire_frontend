@@ -31,6 +31,65 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     }
+
+    .form-header h2 {
+        font-size: 20px;
+    }
+
+    .back-button {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+}
+
+/* 🔵 Form Header with Back Button */
+.form-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 25px;
+    position: relative;
+}
+
+.form-header h2 {
+    text-align: center;
+    color: #007bff;
+    font-size: 28px;
+    margin: 0;
+    font-weight: 600;
+    flex-grow: 1;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.back-button {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.back-button:hover {
+    background: linear-gradient(135deg, #495057 0%, #343a40 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.back-button:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .form-title {
@@ -43,8 +102,28 @@
     padding-bottom: 10px;
 }
 
-/* Responsive Form Title */
+/* Responsive Form Header & Back Button */
 @media (max-width: 768px) {
+    .form-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+
+    .form-header h2 {
+        font-size: 24px;
+        order: 2;
+    }
+
+    .back-button {
+        position: static;
+        order: 1;
+        align-self: flex-start;
+        padding: 8px 14px;
+        font-size: 13px;
+    }
+
     .form-title {
         font-size: 24px;
         margin-bottom: 20px;
@@ -103,7 +182,54 @@ button:hover {
     background: #0056b3;
 }
 
-/* 🔵 Table Styles */
+/* 🔵 Table Sort Headers */
+.sort-header {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 13px;
+    cursor: pointer;
+    padding: 8px 4px;
+    width: 100%;
+    text-align: left;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.sort-header:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+.sort-header.active {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+    color: #fff;
+}
+
+.sort-header:active {
+    transform: scale(0.98);
+}
+
+/* Mobile responsive sort headers */
+@media (max-width: 768px) {
+    .sort-header {
+        font-size: 11px;
+        padding: 6px 2px;
+    }
+}
+
+@media (max-width: 480px) {
+    .sort-header {
+        font-size: 10px;
+        padding: 4px 2px;
+    }
+}
+
+/* 🔵 Table Styling */
 .request-table {
     width: 95%;
     max-width: 1000px;
@@ -121,9 +247,23 @@ button:hover {
 }
 
 .request-table th {
-    background-color: #f8f8f8;
+    background-color: #007bff;
     font-weight: 600;
-    color: #333;
+    color: #ffffff;
+}
+
+/* ID column specific width */
+.request-table th:first-child,
+.request-table td:first-child {
+    width: 60px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.request-table td:first-child {
+    font-weight: bold;
+    color: #007bff;
+    background-color: #f8f9fa;
 }
 
 .request-table td {
