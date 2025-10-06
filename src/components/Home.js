@@ -130,6 +130,47 @@ function Home() {
         </p>
       </section>
 
+      {/* 📊 Quick Access Dashboard Links */}
+      <section className="dashboard-links">
+        <h3>🏢 Management Dashboards</h3>
+        <div className="dashboard-grid">
+          <div className="dashboard-card" onClick={() => navigate('/hr-dashboard')}>
+            <div className="dashboard-icon">👥</div>
+            <h4>HR Manager</h4>
+            <p>Review and approve tire requests</p>
+            <span className="access-note">✉️ Email: slthrmanager@gmail.com</span>
+          </div>
+          
+          <div className="dashboard-card" onClick={() => navigate('/tto-dashboard')}>
+            <div className="dashboard-icon">🚗</div>
+            <h4>TTO Officer</h4>
+            <p>Technical evaluation and approval</p>
+            <span className="access-note">✉️ Email: slttoofficer@gmail.com</span>
+          </div>
+          
+          <div className="dashboard-card" onClick={() => navigate('/engineer-dashboard')}>
+            <div className="dashboard-icon">⚙️</div>
+            <h4>Engineer</h4>
+            <p>Final technical validation</p>
+            <span className="access-note">✉️ Email: sltengineerofficer@gmail.com</span>
+          </div>
+          
+          <div className="dashboard-card" onClick={() => navigate('/tire-order')}>
+            <div className="dashboard-icon">🛒</div>
+            <h4>Tire Order</h4>
+            <p>Place tire orders for approved requests</p>
+            <span className="access-note">💡 Available after approval</span>
+          </div>
+          
+          <div className="dashboard-card" onClick={() => navigate('/seller-dashboard')}>
+            <div className="dashboard-icon">🏪</div>
+            <h4>Seller Dashboard</h4>
+            <p>Manage incoming tire orders</p>
+            <span className="access-note">✉️ Email: slttiersellerseller@gmail.com</span>
+          </div>
+        </div>
+      </section>
+
       <footer className="footer">
         <div className="feedback-form">
           <input type="text" placeholder="Enter your name" />

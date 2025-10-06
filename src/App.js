@@ -16,7 +16,7 @@ import ManagerDashboard from './components/manager/ManagerDashboard';
 import TTOApprovedRequests from './components/tto/TTOApprovedRequests';
 import EngineerDashboard from './components/engineer/EngineerDashboard';
 import TireOrder from './components/TireOrder'; 
-import SellerDashboard from './components/SellerDashboard';
+import SellerDashboard from './components/seller/SellerDashboard';
 import PrivateRoute from './components/PrivateRoute';
 
 // Initialize MSAL instance
@@ -75,6 +75,9 @@ function App() {
         <Route path="/tto/view-request" element={<TTODashboard />} />
         <Route path="/order-tires" element={<TireOrder />} />
         <Route path="/order-tires/:requestId" element={<TireOrder />} />
+        
+        {/* Seller Dashboard - Email accessible */}
+        <Route path="/seller-dashboard" element={<SellerDashboard />} />
 
       </Routes>
     </BrowserRouter>
