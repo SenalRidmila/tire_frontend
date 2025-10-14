@@ -1,0 +1,144 @@
+@import url('https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css');
+
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f2f2f2;
+}
+
+.login-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+}
+
+.login-card {
+    width: 900px;
+    max-width: 95%;
+    background-color: #fff;
+    display: flex;
+    border-radius: 20px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.login-left,
+.login-right {
+    padding: 30px;
+    flex: 1;
+}
+
+.login-left {
+    background-color: #ffffff;
+}
+
+.login-left h2 {
+    font-size: 26px;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    font-size: 14px;
+    display: block;
+    margin-bottom: 6px;
+}
+.login-bottom-image {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.login-bottom-image img {
+    max-width: 150px;
+    height: auto;
+    opacity: 0.9;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    background-color: #f0f1ff;
+}
+
+.login-btn {
+    background: linear-gradient(to right, #7b2ff7, #f107a3);
+    color: white;
+    width: 100%;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+.register-text {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 14px;
+}
+
+.register-text span {
+    color: #7b2ff7;
+    cursor: pointer;
+}
+
+.divider {
+    text-align: center;
+    font-size: 14px;
+    margin: 20px 0 10px;
+    font-weight: 500;
+}
+
+.social-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    cursor: pointer;
+}
+
+.social-login.google {
+    background-color: #fff;
+    border: 1px solid #ddd;
+}
+
+.social-login.facebook {
+    background-color: #3b5998;
+    color: #fff;
+}
+
+.social-login i {
+    margin-right: 8px;
+}
+
+.login-right {
+    background: linear-gradient(135deg, #7352ff, #b67dfc);
+    color: white;
+    text-align: center;
+    border-top-right-radius: 20px;
+    border-bottom-right-radius: 20px;
+}
+
+.login-right .logo {
+    max-width: 150px;
+    margin-bottom: 20px;
+}
+
+.login-right h3 {
+    font-size: 22px;
+    margin-bottom: 20px;
+}
+
+.tires-image {
+    max-width: 80%;
+    height: auto;
+}

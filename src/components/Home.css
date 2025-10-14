@@ -1,0 +1,293 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.home-wrapper {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    background-color: #ffffff;
+    position: relative;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: right;
+    padding: 30px 40px;
+    background: #ffffff;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.nav-links {
+    display: flex;
+    gap: 40px;
+    list-style: none;
+    size:32 px;
+   
+}
+
+.nav-links li {
+    cursor: pointer;
+    font-weight: 500;
+    transition: color 0.3s;
+}
+
+.nav-links li:hover {
+    color: #007bff;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    position: relative;
+}
+
+.profile-icon::before {
+    content: '\1F464';
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.profile-menu {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    cursor: pointer;
+    size: 50px;
+}
+.notification-icon {
+    font-size: 24px;
+    /* Increase size */
+    margin-right: 50px;
+    /* Move a little left */
+    cursor: pointer;
+    color: #333;
+}
+
+.profile-img {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ccc;
+}
+
+.dropdown {
+    display: block;
+    position: absolute;
+    top: 40px;
+    right: 0;
+    background-color: white;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    width: 150px;
+    overflow: hidden;
+}
+
+.profile-menu:hover .dropdown {
+    display: block;
+}
+
+.dropdown p {
+    margin: 0;
+    padding: 12px 16px;
+    font-size: 14px;
+    border-bottom: 1px solid #eee;
+    cursor: pointer;
+    background-color: white;
+    transition: background-color 0.2s;
+}
+
+.dropdown p:last-child {
+    border-bottom: none;
+}
+
+.dropdown p:hover {
+    background-color: #f6f6f6;
+}
+
+/* Hero Section */
+.hero {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 40px 0;
+    gap: 30px;
+}
+
+.hero img {
+    max-width: 250px;
+}
+
+.hero-right h2 {
+    color: green;
+    margin-bottom: 10px;
+}
+
+.hero-right p {
+    margin-bottom: 20px;
+    line-height: 1.6;
+}
+
+.cta-btn {
+    padding: 10px 20px;
+    background-color: red;
+    color: white;
+    border: none;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Tire Options */
+.tire-options {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+}
+
+.tire-options img {
+    width: 190px;
+    height: auto;
+    transition: transform 0.3s;
+}
+
+.tire-options img:hover {
+    transform: scale(1.05);
+}
+
+/* About Us */
+.about-section {
+    background-color: #e8d4d4;
+    padding: 40px 20px;
+    text-align: merge;
+}
+.about-h3{
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #333;
+    text-align: center;
+}
+
+.about-section h3 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.about-section p {
+    max-width: 800px;
+    margin: auto;
+    line-height: 1.6;
+}
+
+/* Footer */
+.footer {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    background-color: #ffffff;
+    padding: 40px;
+    color: #333;
+    border-top: 2px solid #ddd;
+}
+
+.feedback-form input,
+.feedback-form textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+}
+
+.feedback-form button {
+    padding: 10px 20px;
+    background-color: #a6792e;
+    color: rgb(226, 180, 180);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.contact-info p {
+    margin: 8px 0;
+}
+
+.copyright {
+    background-color: #1d1b1b;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+}
+.logout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+}
+
+.logout-box {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.logout-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+}
+
+.yes-btn,
+.no-btn {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.yes-btn {
+    background-color: red;
+    color: white;
+}
+
+.no-btn {
+    background-color: gray;
+    color: white;
+}
+
+.nav-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.nav-link:hover {
+    color: #007bff;
+}

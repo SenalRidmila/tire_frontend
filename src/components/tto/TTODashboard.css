@@ -1,0 +1,764 @@
+.tto-dashboard {
+    font-family: 'Segoe UI', sans-serif;
+    background: linear-gradient(to bottom right, #e1dde6, #ffffff);
+    min-height: 100vh;
+    color: #4b006e;
+}
+
+.tto-title {
+    font-size: 2.5rem;
+    text-align: center;
+    color: #ffffff;
+    margin-bottom: 40px;
+    font-weight: bold;
+}
+
+.tto-grid {
+    display: grid;
+    gap: 50px;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    padding: 40px 20px;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        justify-content: center
+}
+
+.tto-card {
+    background-color: white;
+    border-radius: 16px;
+    box-shadow: 0 6px 18px rgba(160, 99, 245, 0.2);
+    padding: 24px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.tto-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 10px 25px rgba(109, 40, 217, 0.2);
+}
+
+.tto-card img {
+    width: 100%;
+    height: 190px;
+    object-fit: cover;
+    border-radius: 12px;
+    border: 2px solid #d8b4fe;
+}
+
+.tto-card h2 {
+    font-size: 1.2rem;
+    margin-top: 15px;
+    font-weight: bold;
+}
+
+.tto-card p {
+    margin-top: 6px;
+    color: #444;
+}
+
+.tto-status {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 999px;
+}
+
+.tto-status.pending {
+    background-color: #fef3c7;
+    color: #92400e;
+}
+
+.tto-status.approved {
+    background-color: #d1fae5;
+    color: #065f46;
+}
+
+.tto-button {
+    margin-top: 16px;
+    width: 100%;
+    background-color: #7e22ce;
+    color: white;
+    padding: 10px;
+    border: none;
+    font-weight: 600;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+.tto-button:hover {
+    background-color: #6b21a8;
+}
+
+.tto-hero {
+    position: relative;
+    height: 200px;
+    background-size: cover;
+    background-position: center;
+    margin-bottom: 30px;
+}
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+}
+
+.hero-text {
+    position: relative;
+    z-index: 1;
+    color: white;
+    text-align: center;
+    padding-top: 60px;
+}
+
+.hero-text h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+}
+
+.logout-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    margin-top: 10px;
+    transition: background-color 0.3s;
+}
+
+.logout-btn:hover {
+    background-color: #c82333;
+}
+
+.tto-content {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+/* Login Form Styles */
+.login-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 30px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px;
+    margin: 0 auto;
+}
+
+.login-container h2 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.login-form .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.login-form label {
+    font-weight: bold;
+    color: #333;
+}
+
+.login-form input {
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+.login-form input:focus {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.login-btn {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.login-btn:hover {
+    background-color: #0056b3;
+}
+
+.login-info {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    border-left: 4px solid #007bff;
+}
+
+.login-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.login-info code {
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: monospace;
+    color: #333;
+}
+
+.requests-table-container {
+    background-color: white;
+    border-radius: 10px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.requests-table-container h2 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.no-requests {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+}
+
+.requests-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.requests-table th,
+.requests-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.requests-table th {
+    background-color: #f8f9fa;
+    font-weight: bold;
+    color: #333;
+    position: sticky;
+    top: 0;
+}
+
+.requests-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.requests-table tr:hover {
+    background-color: #f0f0f0;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-pending-tto {
+    background-color: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-approved {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-rejected {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.photos-container {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+    max-width: 200px;
+}
+
+.table-photo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    transition: transform 0.2s ease;
+}
+
+.table-photo:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
+.photo-thumbnail-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    min-width: 60px;
+    text-align: center;
+}
+
+.photo-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #ddd;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.photo-thumbnail:hover {
+    transform: scale(1.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    border-color: #007bff;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    flex-wrap: wrap;
+}
+
+.action-buttons button {
+    padding: 6px 12px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+}
+
+.approve-btn {
+    background-color: #28a745;
+    color: white;
+}
+
+.approve-btn:hover {
+    background-color: #218838;
+}
+
+.reject-btn {
+    background-color: #dc3545;
+    color: white;
+}
+
+.reject-btn:hover {
+    background-color: #c82333;
+}
+
+.rejection-reason {
+    background-color: #f8d7da;
+    color: #721c24;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    max-width: 150px;
+    word-wrap: break-word;
+}
+
+/* Modal Styles */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+}
+
+.modal h3 {
+    margin-bottom: 15px;
+    color: #333;
+}
+
+.modal p {
+    margin-bottom: 15px;
+    color: #666;
+}
+
+.modal textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    resize: vertical;
+    margin-bottom: 15px;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+}
+
+.modal-buttons button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.modal-buttons button:first-child {
+    background-color: #6c757d;
+    color: white;
+}
+
+.modal-buttons button:first-child:hover {
+    background-color: #5a6268;
+}
+
+.modal-buttons button:last-child {
+    background-color: #dc3545;
+    color: white;
+}
+
+.modal-buttons button:last-child:hover {
+    background-color: #c82333;
+}
+
+/* Photo Modal Styles */
+.photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90vh;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 24px;
+    color: white;
+    cursor: pointer;
+    z-index: 1002;
+}
+
+.photo-counter {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1002;
+}
+
+.zoom-indicator {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1002;
+}
+
+.photo-modal-content img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+}
+
+.image-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: white;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 1001;
+}
+
+.photo-controls {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+}
+
+.photo-controls button,
+.photo-navigation button {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background: #007bff;
+    color: white;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s;
+}
+
+.photo-controls button:hover,
+.photo-navigation button:hover {
+    background: #0056b3;
+}
+
+.photo-navigation {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.keyboard-shortcuts {
+    margin-top: 10px;
+    color: #666;
+    font-size: 12px;
+    text-align: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .requests-table {
+        font-size: 12px;
+    }
+    
+    .requests-table th,
+    .requests-table td {
+        padding: 8px 4px;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .action-buttons button {
+        width: 100%;
+        margin-bottom: 2px;
+    }
+    
+    .table-photo {
+        width: 30px;
+        height: 30px;
+    }
+    
+    .hero-text h1 {
+        font-size: 1.8em;
+    }
+    
+    .login-container {
+        margin: 0 10px;
+    }
+
+    .photo-controls,
+    .photo-navigation {
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .photo-modal-content {
+        padding: 10px;
+    }
+
+    .close {
+        top: 5px;
+        right: 10px;
+    }
+}
+
+.tto-footer {
+    background-color: #0e4194;
+    color: white;
+    text-align: center;
+    padding: 20px 0;
+    margin-top: 40px;
+}
+
+/* Status Badge Styles */
+.status-tto-approved {
+    background-color: #28a745;
+    color: white;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* View Details Button */
+.view-details-btn {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 6px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    margin-left: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.view-details-btn:hover {
+    background-color: #138496;
+}
+
+/* Request Details Modal */
+.wide-modal {
+    max-width: 800px;
+    width: 90%;
+    padding: 20px;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.request-details-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.request-details-grid > div {
+    background-color: #f8f9fa;
+    padding: 10px;
+    border-radius: 5px;
+    border-left: 3px solid #17a2b8;
+}
+
+.full-width {
+    grid-column: 1 / -1;
+}
+
+.photos-section {
+    margin-top: 20px;
+}
+
+.request-photos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+}
+
+.detail-photo {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+.detail-photo:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Photo Modal */
+.photo-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.photo-modal .modal-photo {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+}
+
+.photo-navigation {
+    position: absolute;
+    bottom: 20px;
+    display: flex;
+    gap: 10px;
+}
+
+.photo-navigation button {
+    background-color: rgba(255, 255, 255, 0.8);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.photo-navigation button:hover {
+    background-color: white;
+}

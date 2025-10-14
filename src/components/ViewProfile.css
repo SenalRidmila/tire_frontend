@@ -1,0 +1,171 @@
+.profile-page {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f4f4;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-header {
+    text-align: center;
+    padding: 20px;
+    position: relative;
+    background-color: #e7dbdb;
+    border-bottom: 1px solid #4a5154;
+}
+
+.back-link {
+    position: absolute;
+    left: 20px;
+    top: 25px;
+    text-decoration: none;
+    color: #000000;
+    font-weight: bold;
+}
+
+.slt-logo {
+    width: 200px;
+    margin-bottom: 1px;
+}
+
+.profile-container {
+    display: flex;
+    justify-content: center;
+    padding: 40px 20px;
+}
+
+.profile-content {
+    display: flex;
+    gap: 40px;
+    background-color: #929bb5;
+    padding: 30px;
+    border-radius: 12px;
+    max-width: 900px;
+    width: 100%;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+    border: 3px solid #000000;
+}
+
+.profile-photo {
+    width: 220px;
+    height: 220px; 
+    border-radius: 10px;
+    object-fit: cover;
+    border: 3px solid #000000;
+}
+
+.employee-details {
+    flex: 1;
+    color: #333;
+}
+
+.employee-details h2 {
+    color: #000000;
+    margin-bottom: 15px;
+}
+
+.employee-details p {
+    margin: 8px 0;
+    font-size: 16px;
+}
+
+.footer {
+    background-color: #1d1d1d;
+    padding: 5px 10px;
+    text-align: left;
+}
+
+.contact-info {
+    color: #fff;
+    /* white text */
+    text-align: left;
+    background: transparent;
+    /* remove white background */
+    padding: 0;
+    margin: 0 30px;
+    box-shadow: none;
+    /* in case shadow causes white look */
+    border: none;
+    /* remove any borders */
+}
+
+.contact-info p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.footer .copyright {
+    font-size: 13px;
+    color: #aaa;
+    margin-top: 15px;
+}
+.logout-button-header {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    padding: 10px 15px;
+    background-color: rgb(6, 21, 87);
+    color: white;
+    border: black 2px solid;
+    border-radius: 20px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.logout-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    background-color: rgb(6, 21, 87);
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Reuse modal styles */
+.logout-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.6);
+    display: flex;
+    justify-content: center;
+    align-items: right;
+    z-index: 2000;
+}
+
+.logout-box {
+    background-color: white;
+    padding: 30px;
+    border-radius: 10px;
+    text-align: center;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.logout-buttons {
+    margin-top: 20px;
+    display: flex;
+    justify-content: right;
+    gap: 20px;
+}
+
+.yes-btn,
+.no-btn {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+}
+
+.yes-btn {
+    background-color: red;
+    color: white;
+}
+
+.no-btn {
+    background-color: gray;
+    color: white;
+}

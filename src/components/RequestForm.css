@@ -1,0 +1,519 @@
+
+
+/* 🔵 Form Container */
+.request-form {
+    width: 95%;
+    max-width: 850px;
+    margin: 0 auto 40px auto;
+    padding: 30px 25px;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 8px 18px rgba(0, 0, 0, 0.15);
+}
+
+.form-title {
+    text-align: center;
+    color: #007bff;
+    font-size: 28px;
+    margin-bottom: 25px;
+    font-weight: 600;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+.form-group {
+    margin-bottom: 16px;
+}
+
+label {
+    font-weight: 500;
+    display: block;
+    margin-bottom: 6px;
+    color: #333;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 15px;
+    transition: border-color 0.3s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+button {
+    background: #007bff;
+    color: white;
+    padding: 10px 22px;
+    font-size: 15px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+button:hover {
+    background: #0056b3;
+}
+
+/* 🔵 Table Styles */
+.request-table {
+    width: 95%;
+    max-width: 1000px;
+    margin: 30px auto;
+    border-collapse: collapse;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.request-table th,
+.request-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+}
+
+.request-table th {
+    background-color: #f8f8f8;
+    font-weight: 600;
+    color: #333;
+}
+
+.request-table td {
+    background-color: #fff;
+}
+
+.request-table img.table-photo {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 4px;
+    transition: transform 0.3s;
+}
+
+.request-table img.table-photo:hover {
+    transform: scale(1.25);
+}
+
+/* 🔵 Responsive */
+@media (max-width: 768px) {
+    .request-form {
+        padding: 20px;
+    }
+
+    .request-table {
+        font-size: 13px;
+    }
+
+    .hero-banner {
+        height: 180px;
+    }
+}
+
+.slides img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    transition: transform 0.5s ease-in-out;
+}
+
+@keyframes slideAnimation {
+    0% {
+        transform: translateX(0%);
+    }
+
+    33% {
+        transform: translateX(-100%);
+    }
+
+    66% {
+        transform: translateX(-200%);
+    }
+
+    100% {
+        transform: translateX(0%);
+    }
+}
+
+.request-form {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+.error-message {
+    color: red;
+    font-size: 0.9em;
+    margin-top: 4px;
+    font-weight: 600;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+.form-title {
+    text-align: center;
+    color: #333;
+    font-size: 28px;
+    margin-bottom: 25px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 10px;
+}
+
+label {
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+input,
+select,
+textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.file-input {
+    border: 2px dashed #ccc;
+    padding: 20px;
+    text-align: center;
+    background: #f9f9f9;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border-color 0.3s ease;
+}
+
+.file-input:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+.photo-preview-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.photo-preview-item {
+    position: relative;
+    display: inline-block;
+}
+
+.photo-preview-item img {
+    width: 120px;
+    height: 120px;
+    object-fit: cover;
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.remove-photo-btn {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #ff4444;
+    color: white;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.remove-photo-btn:hover {
+    background: #cc0000;
+}
+
+button {
+    margin-top: 15px;
+    padding: 10px 20px;
+    cursor: pointer;
+    background: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+}
+
+.error-text {
+    color: red;
+    font-size: 0.9em;
+}
+
+.error-input {
+    border: 1px solid red;
+}
+
+.request-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 30px;
+}
+
+.request-table th,
+.request-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: center;
+}
+
+.request-table th {
+    background-color: #f0f0f0;
+}
+
+.photos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    justify-content: center;
+    align-items: center;
+    min-height: 60px;
+}
+
+/* Table Photo Styles */
+.table-photo {
+    width: 60px;
+    height: 60px;
+    object-fit: cover;
+    border-radius: 10px;
+    margin: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 2px solid #e0e0e0;
+    background: #f8f9fa;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.table-photo:hover {
+    transform: scale(1.15);
+    box-shadow: 0 8px 16px rgba(0, 123, 255, 0.3);
+    border-color: #007bff;
+    z-index: 15;
+    position: relative;
+}
+
+/* Loading state for photos */
+.table-photo[data-loading="true"] {
+    opacity: 0.6;
+    background: linear-gradient(45deg, #f0f0f0 25%, transparent 25%, transparent 75%, #f0f0f0 75%);
+    background-size: 10px 10px;
+    animation: loading-stripes 1s linear infinite;
+}
+
+@keyframes loading-stripes {
+    0% { background-position: 0 0; }
+    100% { background-position: 10px 10px; }
+}
+
+.photos-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    max-width: 140px;
+    justify-content: center;
+    align-items: center;
+    min-height: 70px;
+    padding: 5px;
+}
+
+/* Photo Modal Styles */
+.photo-modal {
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.photo-modal-content {
+    position: relative;
+    max-width: 90%;
+    max-height: 90%;
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.photo-modal-content img {
+    max-width: 100%;
+    max-height: 70vh;
+    object-fit: contain;
+    border-radius: 4px;
+    transition: transform 0.3s ease;
+}
+
+.photo-counter {
+    position: absolute;
+    top: 10px;
+    left: 20px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1002;
+}
+
+.zoom-indicator {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1002;
+}
+
+.photo-navigation {
+    margin-top: 15px;
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.photo-navigation button {
+    padding: 10px 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background 0.3s ease;
+    min-width: 80px;
+}
+
+.photo-navigation button:hover {
+    background: #0056b3;
+    transform: translateY(-1px);
+}
+
+.photo-controls {
+    margin: 15px 0;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.photo-controls button {
+    padding: 8px 12px;
+    background: #28a745;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    transition: background 0.3s ease;
+}
+
+.photo-controls button:hover {
+    background: #1e7e34;
+}
+
+.close {
+    position: absolute;
+    top: 15px;
+    right: 25px;
+    color: #fff;
+    background: rgba(0, 0, 0, 0.7);
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    z-index: 1001;
+    transition: background 0.3s ease;
+}
+
+.close:hover {
+    background: rgba(255, 0, 0, 0.8);
+    color: #fff;
+}
+
+.keyboard-shortcuts {
+    margin-top: 15px;
+    text-align: center;
+    color: #666;
+    font-size: 12px;
+    background: #f8f9fa;
+    padding: 8px 12px;
+    border-radius: 4px;
+    border: 1px solid #e0e0e0;
+}
+
+.keyboard-shortcuts small {
+    font-weight: 500;
+}
+
+.image-loading {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .photo-modal-content {
+        max-width: 95%;
+        max-height: 95%;
+        padding: 10px;
+    }
+    
+    .photo-modal-content img {
+        max-height: 60vh;
+    }
+    
+    .photo-controls button,
+    .photo-navigation button {
+        padding: 8px 12px;
+        font-size: 12px;
+        margin: 2px;
+    }
+    
+    .photo-counter,
+    .zoom-indicator {
+        font-size: 12px;
+        padding: 3px 8px;
+    }
+}
