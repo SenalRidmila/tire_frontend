@@ -737,6 +737,9 @@ function RequestForm() {
                       const getImageUrl = (originalUrl) => {
                         if (!originalUrl) return null;
                         
+                        // If it's a base64 data URL, use as is
+                        if (originalUrl.startsWith('data:')) return originalUrl;
+                        
                         // If already a full HTTP URL from MongoDB, use as is
                         if (originalUrl.startsWith('http')) return originalUrl;
                         
@@ -772,6 +775,13 @@ function RequestForm() {
                           onError={(e) => {
                             console.warn(`❌ Image loading failed: ${e.target.src}`);
                             console.warn(`Original URL: ${url}`);
+                            
+                            // Skip fallback for base64 data URLs
+                            if (url && url.startsWith('data:')) {
+                              console.warn('Base64 data URL failed to load - no fallback available');
+                              e.target.style.display = 'none';
+                              return;
+                            }
                             
                             // Enhanced multi-level fallback system
                             if (!e.target.dataset.fallbackLevel) {
@@ -1083,9 +1093,15 @@ function RequestForm() {
                 console.warn(`Failed to load modal image: ${e.target.src}`);
                 setImageLoading(false);
                 
+                // Skip fallback for base64 data URLs
+                const originalUrl = photoModal.photos[photoModal.currentIndex];
+                if (originalUrl && originalUrl.startsWith('data:')) {
+                  console.warn('Base64 data URL failed to load - no fallback available');
+                  return;
+                }
+                
                 // Try fallback URLs for modal images
                 const currentUrl = e.target.src;
-                const originalUrl = photoModal.photos[photoModal.currentIndex];
                 
                 if (!e.target.dataset.modalFallbackTried) {
                   e.target.dataset.modalFallbackTried = 'true';
