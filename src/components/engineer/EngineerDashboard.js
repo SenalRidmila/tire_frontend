@@ -37,7 +37,6 @@ function EngineerDashboard() {
   const [rejectingId, setRejectingId] = useState(null);
 
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
-  const [usingMockData, setUsingMockData] = useState(false);
 
   const rowRefs = useRef({});
 
@@ -93,7 +92,6 @@ function EngineerDashboard() {
         }));
         
         setRequests(processedRequests);
-        setUsingMockData(false);
         console.log('📊 Engineer Dashboard: Successfully loaded', processedRequests.length, 'tire requests with photos');
         
         // Debug – see all unique statuses coming from MongoDB
@@ -105,52 +103,11 @@ function EngineerDashboard() {
         throw new Error(`API error: ${response.status}`);
       }
     } catch (error) {
-      console.error('💥 Engineer Dashboard: MongoDB connection failed, using fallback mock data:', error);
+      console.error('💥 Engineer Dashboard: Database connection failed:', error);
       
-      // Fallback to mock data for development
-      const mockData = [
-        {
-          id: 'mock-tto-1',
-          vehicleNo: 'CAR-2024-001',
-          vehicleType: 'Car',
-          vehicleBrand: 'Toyota',
-          vehicleModel: 'Prius',
-          userSection: 'Transport Department',
-          tireSize: '215/60R16',
-          noOfTires: '4',
-          noOfTubes: '0',
-          presentKm: '60000',
-          previousKm: '55000',
-          wearIndicator: 'Yes',
-          wearPattern: 'Even',
-          officerServiceNo: 'ENG001',
-          status: 'TTO_APPROVED',
-          comments: 'TTO approved request awaiting engineer review',
-          tirePhotoUrls: []
-        },
-        {
-          id: 'mock-mgr-1', 
-          vehicleNo: 'VAN-2024-002',
-          vehicleType: 'Van',
-          vehicleBrand: 'Nissan',
-          vehicleModel: 'NV200',
-          userSection: 'Admin Department',
-          tireSize: '185/65R15',
-          noOfTires: '4',
-          noOfTubes: '0',
-          presentKm: '45000',
-          previousKm: '40000',
-          wearIndicator: 'Yes',
-          wearPattern: 'Uneven',
-          officerServiceNo: 'MGR001',
-          status: 'MANAGER_APPROVED',
-          comments: 'Manager approved request awaiting engineer review',
-          tirePhotoUrls: []
-        }
-      ];
-      setRequests(mockData);
-      setUsingMockData(true);
-      console.log('🎭 Engineer Dashboard: Using fallback mock data:', mockData.length, 'requests');
+      // No mock data - keep empty array to show real error state
+      setRequests([]);
+      console.log('❌ Database connection failed. No data loaded.');
     }
   };
 
@@ -279,19 +236,6 @@ function EngineerDashboard() {
       </div>
 
       <div className="dashboard-content" style={{ padding: '20px' }}>
-        {usingMockData && (
-          <div style={{
-            backgroundColor: '#fff3cd',
-            border: '1px solid #ffeaa7',
-            borderRadius: '4px',
-            padding: '12px',
-            marginBottom: '20px',
-            color: '#856404'
-          }}>
-            <strong>⚠️ Demo Mode:</strong> Backend unavailable. Showing sample data for testing. 
-            Please check your Railway deployment.
-          </div>
-        )}
 
         {/* ================== Pending table ================== */}
         <section className="table-section">

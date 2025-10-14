@@ -1,0 +1,73 @@
+.backend-status {
+  margin: 20px 0;
+  padding: 15px;
+  border-radius: 8px;
+  border-left: 4px solid #007bff;
+  background-color: #f8f9fa;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.backend-status.error {
+  border-left-color: #ffc107;
+  background-color: #fff3cd;
+}
+
+.status-content {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.status-icon {
+  font-size: 24px;
+  min-width: 24px;
+}
+
+.backend-status h4 {
+  margin: 0 0 5px 0;
+  color: #495057;
+}
+
+.backend-status p {
+  margin: 0 0 10px 0;
+  color: #6c757d;
+}
+
+.backend-status small {
+  color: #868e96;
+}
+
+.retry-btn {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  margin-top: 10px;
+  transition: background-color 0.2s;
+}
+
+.retry-btn:hover {
+  background-color: #0056b3;
+}
+
+.retry-btn:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}

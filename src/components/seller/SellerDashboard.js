@@ -31,25 +31,8 @@ const SellerDashboard = () => {
     } catch (error) {
       console.error('Error fetching orders:', error);
       setError('Failed to load tire orders. Please try again.');
-      // Use mock data for demo
-      setOrders([
-        {
-          id: 'ORD001',
-          vehicleNo: 'CAR-123',
-          tireBrand: 'Michelin',
-          quantity: 4,
-          status: 'PENDING',
-          vendorEmail: 'slttiersellerseller@gmail.com'
-        },
-        {
-          id: 'ORD002', 
-          vehicleNo: 'VAN-456',
-          tireBrand: 'Bridgestone',
-          quantity: 2,
-          status: 'CONFIRMED',
-          vendorEmail: 'slttiersellerseller@gmail.com'
-        }
-      ]);
+      // No mock data - keep empty array to show real error state
+      setOrders([]);
     } finally {
       setLoading(false);
     }

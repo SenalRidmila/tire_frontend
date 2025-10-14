@@ -22,80 +22,7 @@ function RequestForm() {
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
-  const [usingMockData, setUsingMockData] = useState(false);
 
-  // Mock data for development/testing when backend is unavailable
-  const mockRequests = [
-    {
-      id: 'mock-1',
-      vehicleNo: 'WP-1234',
-      vehicleType: 'Car',
-      vehicleBrand: 'Toyota',
-      vehicleModel: 'Prius',
-      userSection: 'Transport',
-      replacementDate: '2024-01-15',
-      existingMake: 'Bridgestone',
-      tireSize: '195/65R15',
-      noOfTires: 4,
-      noOfTubes: 0,
-      costCenter: 1001,
-      presentKm: 85000,
-      previousKm: 75000,
-      wearIndicator: 'Yes',
-      wearPattern: 'One Edge',
-      officerServiceNo: 'EMP001',
-      comments: 'Front tires showing wear',
-      email: 'transport@company.com',
-      status: 'PENDING',
-      tirePhotoUrls: ['/images/tire1.jpeg', '/images/tire2.jpeg']
-    },
-    {
-      id: 'mock-2',
-      vehicleNo: 'WP-5678',
-      vehicleType: 'Van',
-      vehicleBrand: 'Nissan',
-      vehicleModel: 'Caravan',
-      userSection: 'Logistics',
-      replacementDate: '2024-02-20',
-      existingMake: 'Michelin',
-      tireSize: '215/60R16',
-      noOfTires: 2,
-      noOfTubes: 2,
-      costCenter: 1002,
-      presentKm: 120000,
-      previousKm: 110000,
-      wearIndicator: 'No',
-      wearPattern: 'Center',
-      officerServiceNo: 'EMP002',
-      comments: 'Rear tires need replacement',
-      email: 'logistics@company.com',
-      status: 'APPROVED',
-      tirePhotoUrls: ['/images/tire3.jpeg']
-    },
-    {
-      id: 'mock-3',
-      vehicleNo: 'WP-9999',
-      vehicleType: 'Truck',
-      vehicleBrand: 'Isuzu',
-      vehicleModel: 'NPR',
-      userSection: 'Delivery',
-      replacementDate: '2024-03-10',
-      existingMake: 'Yokohama',
-      tireSize: '7.50R16',
-      noOfTires: 6,
-      noOfTubes: 6,
-      costCenter: 1003,
-      presentKm: 200000,
-      previousKm: 180000,
-      wearIndicator: 'Yes',
-      wearPattern: 'Both Edges',
-      officerServiceNo: 'EMP003',
-      comments: 'Heavy usage requires new tires',
-      email: 'delivery@company.com',
-      status: 'REJECTED',
-      tirePhotoUrls: ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg']
-    }
-  ];
 
   useEffect(() => { fetchRequests(); }, []);
   useEffect(() => {
@@ -112,7 +39,7 @@ function RequestForm() {
     return () => document.removeEventListener('keydown', handleKeyPress);
   }, [photoModal.show]);
 
-  const fetchRequests = async () => {
+  const fetchRequests = async (retryCount = 0) => {
     try {
       console.log('🔍 Fetching tire requests from MongoDB Atlas...');
       
@@ -150,31 +77,42 @@ function RequestForm() {
           }));
           
           setRequests(processedRequests);
-          setUsingMockData(false);
           console.log('📊 Successfully loaded', processedRequests.length, 'tire requests with photos from MongoDB');
           return;
+        } else if (response.status === 502 && retryCount < 2) {
+          console.log(`🔄 502 Bad Gateway - Backend starting up. Retry ${retryCount + 1}/2 in 3 seconds...`);
+          await new Promise(resolve => setTimeout(resolve, 3000));
+          return fetchRequests(retryCount + 1);
         } else {
           console.log('❌ MongoDB API error:', response.status, response.statusText);
           throw new Error(`API error: ${response.status}`);
         }
       } catch (mongoError) {
         console.error('MongoDB connection failed:', mongoError);
+        
+        // Check if it's a 502 error (backend down/cold start)
+        if (mongoError.message.includes('502')) {
+          console.log('🔄 Backend appears to be starting up (502). This is common with Render free tier.');
+          console.log('💡 Tip: The backend may be in "cold start" - it can take 30-60 seconds to wake up.');
+        }
+        
         throw mongoError;
       }
     } catch (error) {
-      console.error('� Failed to fetch from MongoDB, using fallback mock data:', error);
+      console.error('❌ Failed to fetch from database:', error);
       
-      // Enhanced mock data with proper photo URLs for demo
-      const enhancedMockRequests = mockRequests.map(req => ({
-        ...req,
-        tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(url => 
-          url.startsWith('/images/') ? url : `/images/${url}`
-        ) : []
-      }));
+      // Add user-friendly error message for 502 errors
+      if (error.message.includes('502')) {
+        console.log('📡 Backend Status: The Render backend appears to be starting up or temporarily unavailable.');
+        console.log('⏳ This is normal for free tier hosting - please wait 30-60 seconds and try again.');
+      }
       
-      setRequests(enhancedMockRequests);
-      setUsingMockData(true);
-      console.log('🎭 Using enhanced mock data with', enhancedMockRequests.length, 'sample requests');
+      // Don't use mock data - keep empty array and show error state
+      setRequests([]);
+      console.log('❌ Database connection failed. No data loaded.');
+      
+      // You could set an error state here for UI display
+      // setError(error.message);
     }
   };
 
@@ -349,31 +287,7 @@ function RequestForm() {
       return;
     }
 
-    if (usingMockData) {
-      // Mock submission for demo purposes
-      const newRequest = {
-        ...formData,
-        id: `mock-${Date.now()}`,
-        status: 'PENDING',
-        tirePhotoUrls: []
-      };
-      
-      if (editingId) {
-        // Update existing mock request
-        setRequests(prev => prev.map(req => req.id === editingId ? { ...newRequest, id: editingId } : req));
-        alert('🎭 Mock: Request updated successfully! (Demo mode - backend unavailable)');
-      } else {
-        // Add new mock request
-        setRequests(prev => [...prev, newRequest]);
-        
-        // Send notification email to manager
-        await sendManagerNotification(newRequest);
-        
-        alert('🎭 Mock: Request submitted successfully! Manager has been notified via email. (Demo mode - backend unavailable)');
-      }
-      resetForm();
-      return;
-    }
+
 
     try {
       const formDataToSend = new FormData();
@@ -529,13 +443,6 @@ function RequestForm() {
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure to delete this request?')) return;
-    
-    if (usingMockData) {
-      // Mock deletion for demo purposes
-      setRequests(prev => prev.filter(req => req.id !== id));
-      alert('🎭 Mock: Request deleted successfully! (Demo mode - backend unavailable)');
-      return;
-    }
     
     try {
       await axios.delete(`${API_URL}/${id}`);
@@ -721,20 +628,6 @@ function RequestForm() {
 
   return (
     <>
-      {usingMockData && (
-        <div style={{
-          backgroundColor: '#fff3cd',
-          border: '1px solid #ffeaa7',
-          color: '#856404',
-          padding: '10px',
-          margin: '10px 0',
-          borderRadius: '5px',
-          textAlign: 'center'
-        }}>
-          🎭 <strong>Demo Mode:</strong> Backend unavailable - Using sample data for demonstration
-        </div>
-      )}
-
       <form className="request-form" onSubmit={handleSubmit} noValidate>
         <h2>TIRE REQUEST FORM</h2>
 

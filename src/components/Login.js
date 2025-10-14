@@ -80,69 +80,9 @@ function Login() {
       }
     } catch (error) {
       console.error('Login error:', error);
-      console.log('Fallback mode activated'); // Debug log
       
-      // Fallback: Demo employee collection data (for testing when backend is unavailable)
-      const demoEmployees = [
-        { 
-          employeeId: 'EMP001', 
-          password: 'Kaushalya417#', 
-          name: 'Chalani Kaushalya', 
-          role: 'employee',
-          department: 'IT Solutions',
-          position: 'Software Engineer'
-        },
-        { 
-          employeeId: 'EMP002', 
-          password: 'saman123', 
-          name: 'Engineer Saman', 
-          role: 'engineer',
-          department: 'Technical',
-          position: 'Senior Engineer'
-        },
-        { 
-          employeeId: 'EMP003', 
-          password: 'nimal456', 
-          name: 'User Nimal', 
-          role: 'user',
-          department: 'Operations'
-        }
-      ];
-      
-      console.log('Checking credentials against:', demoEmployees); // Debug log
-      
-      const validEmployee = demoEmployees.find(
-        emp => emp.employeeId === userId && emp.password === password
-      );
-      
-      console.log('Valid employee found:', validEmployee); // Debug log
-      
-      if (validEmployee) {
-        // Store user info and authentication status for session
-        localStorage.setItem('user', JSON.stringify({
-          id: validEmployee.employeeId,
-          username: validEmployee.name,
-          role: validEmployee.role,
-          department: validEmployee.department,
-          timestamp: new Date().toISOString()
-        }));
-        
-        // Set authentication status
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: validEmployee.employeeId,
-          name: validEmployee.name,
-          role: validEmployee.role,
-          department: validEmployee.department
-        }));
-        
-        setMessage('✅ Login successful! Welcome to the Tire Management System.');
-        setTimeout(() => {
-          navigate('/home');
-        }, 1000);
-      } else {
-        setMessage('Invalid User ID or Password. Please try again.');
-      }
+      // No demo data - show database connection error
+      setMessage('❌ Database connection failed. Please contact administrator or try again later.');
     }
     
     setLoading(false);
