@@ -390,6 +390,35 @@ function RequestForm() {
   const handleImageLoad = () => setImageLoading(false);
   const handleImageError = () => { setImageLoading(false); alert('Failed to load image'); };
 
+  // Retry helper for cold start and timeout issues
+  const submitWithRetry = async (formDataToSend, isUpdate = false, retryCount = 0) => {
+    const maxRetries = 2;
+    try {
+      const config = {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        timeout: retryCount === 0 ? 120000 : 180000, // Longer timeout on retry
+        onUploadProgress: (progressEvent) => {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Upload progress: ${percentCompleted}%`);
+        }
+      };
+
+      if (isUpdate) {
+        return await axios.put(`${API_URL}/${editingId}`, formDataToSend, config);
+      } else {
+        return await axios.post(API_URL, formDataToSend, config);
+      }
+    } catch (error) {
+      // Retry on timeout or 502 errors (server cold start)
+      if ((error.code === 'ECONNABORTED' || error.response?.status === 502) && retryCount < maxRetries) {
+        console.log(`Retry ${retryCount + 1}/${maxRetries} due to ${error.code || error.response?.status}`);
+        await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds
+        return submitWithRetry(formDataToSend, isUpdate, retryCount + 1);
+      }
+      throw error; // Re-throw if not retryable or max retries reached
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -408,19 +437,24 @@ function RequestForm() {
       Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
       selectedFiles.forEach(file => formDataToSend.append('tirePhotos', file));
       
+      // Show progress message for better UX
+      const totalFiles = selectedFiles.length;
+      const totalSizeMB = selectedFiles.reduce((total, file) => total + file.size, 0) / (1024 * 1024);
+      
+      if (totalSizeMB > 10) {
+        alert(`📤 Uploading ${totalFiles} files (${totalSizeMB.toFixed(1)}MB). This may take up to 2 minutes due to server startup time...`);
+      } else if (totalFiles > 0) {
+        console.log(`📤 Uploading ${totalFiles} tire photos...`);
+      }
+      
       let response;
       if (editingId) {
-        // For update, assume PUT endpoint
-        response = await axios.put(`${API_URL}/${editingId}`, formDataToSend, { 
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 30000 // 30 second timeout
-        });
+        // For update - use retry mechanism for reliability
+        response = await submitWithRetry(formDataToSend, true);
         alert('✅ Request updated successfully!');
       } else {
-        response = await axios.post(API_URL, formDataToSend, { 
-          headers: { 'Content-Type': 'multipart/form-data' },
-          timeout: 30000 // 30 second timeout
-        });
+        // For new submission - use retry mechanism for cold start issues  
+        response = await submitWithRetry(formDataToSend, false);
         
         alert('✅ Request submitted successfully! Manager will be notified via email.');
         
@@ -440,7 +474,8 @@ function RequestForm() {
       
       // Provide specific error messages
       if (error.code === 'ECONNABORTED') {
-        alert('❌ Request timeout. Please check your internet connection and try again.');
+        const fileInfo = selectedFiles.length > 0 ? ` (${selectedFiles.length} files)` : '';
+        alert(`⏱️ Upload timeout${fileInfo}. The server may be starting up (cold start). Please wait 30 seconds and try again. Large files may need multiple attempts.`);
       } else if (error.response?.status === 502) {
         alert('❌ Server temporarily unavailable (502). Please try again in a few moments.');
       } else if (error.response?.status === 413) {
