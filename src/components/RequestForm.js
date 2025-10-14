@@ -515,8 +515,18 @@ function RequestForm() {
                           return `https://tire-backend-58a9.onrender.com${originalUrl}`;
                         }
                         
-                        // Handle direct filenames from MongoDB (skip if it looks like base64 fragment)
-                        if (!originalUrl.startsWith('/') && !originalUrl.includes('base64') && originalUrl.length < 100) {
+                        // Detect and reject base64 fragments (common issue)
+                        const isBase64Fragment = /^[A-Za-z0-9+/=]{10,}$/.test(originalUrl) || 
+                                                originalUrl.includes('base64') || 
+                                                originalUrl.length > 50;
+                        
+                        if (isBase64Fragment) {
+                          console.warn(`Detected base64 fragment, using fallback: ${originalUrl}`);
+                          return `/images/tire1.jpeg`; // Use demo image for fragments
+                        }
+                        
+                        // Handle direct filenames from MongoDB (only if it looks like a real filename)
+                        if (!originalUrl.startsWith('/') && originalUrl.includes('.') && originalUrl.length < 50) {
                           return `https://tire-backend-58a9.onrender.com/uploads/${originalUrl}`;
                         }
                         
@@ -798,29 +808,44 @@ function RequestForm() {
                 console.warn(`Failed to load modal image: ${e.target.src}`);
                 setImageLoading(false);
                 
-                // Try fallback URLs for modal images
+                // Check if current URL is a base64 fragment or invalid
                 const currentUrl = e.target.src;
                 const originalUrl = photoModal.photos[photoModal.currentIndex];
+                
+                // Detect base64 fragments and don't try to create URLs from them
+                const isBase64Fragment = /[A-Za-z0-9+/=]{20,}/.test(originalUrl) || 
+                                        originalUrl.includes('base64') ||
+                                        currentUrl.includes('AKHJG0GHSCyZAAAAAElFTkSuQmCC');
+                
+                if (isBase64Fragment) {
+                  console.warn('Modal image is base64 fragment, using demo image');
+                  e.target.src = '/images/tire1.jpeg';
+                  return;
+                }
                 
                 if (!e.target.dataset.modalFallbackTried) {
                   e.target.dataset.modalFallbackTried = 'true';
                   
-                  // Try different URL patterns
-                  const fallbackUrls = [
-                    originalUrl.includes('/uploads/') ? originalUrl : originalUrl.replace(BASE_URL, `${BASE_URL}/uploads`),
-                    originalUrl.startsWith('http') ? originalUrl : `${BASE_URL}/uploads/${originalUrl}`,
-                    `/uploads/${originalUrl.split('/').pop()}`,
-                    originalUrl
-                  ].filter(url => url !== currentUrl);
-                  
-                  if (fallbackUrls.length > 0) {
-                    console.log(`Trying fallback URL: ${fallbackUrls[0]}`);
-                    e.target.src = fallbackUrls[0];
-                    return;
+                  // Only try fallbacks for valid-looking URLs
+                  if (originalUrl.startsWith('http') || originalUrl.startsWith('/') || originalUrl.includes('.')) {
+                    const fallbackUrls = [
+                      originalUrl.includes('/uploads/') ? originalUrl : originalUrl.replace(BASE_URL, `${BASE_URL}/uploads`),
+                      originalUrl.startsWith('http') ? originalUrl : `${BASE_URL}/uploads/${originalUrl}`,
+                      `/uploads/${originalUrl.split('/').pop()}`,
+                      originalUrl
+                    ].filter(url => url !== currentUrl && !url.includes('AKHJG0GHSCyZAAAAAElFTkSuQmCC'));
+                    
+                    if (fallbackUrls.length > 0) {
+                      console.log(`Trying fallback URL: ${fallbackUrls[0]}`);
+                      e.target.src = fallbackUrls[0];
+                      return;
+                    }
                   }
                 }
                 
-                alert('Image could not be loaded. The file may be missing or corrupted.');
+                // Final fallback: use demo image
+                console.warn('All modal image fallbacks failed, using demo image');
+                e.target.src = '/images/tire1.jpeg';
               }}
             />
             {imageLoading && <div className="image-loading">Loading...</div>}
