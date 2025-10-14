@@ -28,7 +28,7 @@ function RequestForm() {
   const [usingMockData, setUsingMockData] = useState(false);
   
   // Sorting state
-  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'desc' });
+  const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
 
   // Sorting function
   const sortData = (data, key, direction) => {
@@ -168,7 +168,7 @@ function RequestForm() {
     try {
       console.log('🔍 Fetching tire requests from MongoDB Atlas...');
       
-      // Try MongoDB tire_requests collection via Render backend
+      // Try MongoDB tire_requests collection via Railway backend
       try {
         const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
           method: 'GET',
@@ -190,7 +190,7 @@ function RequestForm() {
               // If already a full URL, use as is
               if (photoUrl.startsWith('http')) return photoUrl;
               
-              // If it's a relative path, construct full Railway URL
+              // If it's a relative path, construct full Render URL
               if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
                 const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
                 return `https://tire-backend-58a9.onrender.com/uploads/${cleanPath}`;
@@ -537,7 +537,7 @@ function RequestForm() {
   // Send email notification to manager
   const sendManagerNotification = async (requestData) => {
     try {
-      const managerEmail = 'kaushalya@slt.lk'; // Manager email
+      const managerEmail = 'slthrmanager@gmail.com'; // Manager email
       // Use production Vercel URL instead of localhost
       const dashboardLink = `https://tire-frontend.vercel.app/manager?requestId=${requestData.id}`;
       
@@ -794,7 +794,7 @@ function RequestForm() {
                 </button>
               </th>
               <th>Photos</th>
-              <th>Actions</th>
+
             </tr>
           </thead>
           <tbody>
@@ -863,17 +863,17 @@ function RequestForm() {
                             if (!e.target.dataset.fallbackLevel) {
                               e.target.dataset.fallbackLevel = '1';
                               
-                              // Level 1: Try direct Railway backend URL with different path
+                              // Level 1: Try direct Render backend URL with different path
                               const filename = url.split('/').pop().split('?')[0]; // Remove query params
                               const renderUrl = `https://tire-backend-58a9.onrender.com/uploads/${filename}`;
                               
-                              console.log(`🔄 Level 1 fallback: ${railwayUrl}`);
-                              e.target.src = railwayUrl;
+                              console.log(`🔄 Level 1 fallback: ${renderUrl}`);
+                              e.target.src = renderUrl;
                               
                             } else if (e.target.dataset.fallbackLevel === '1') {
                               e.target.dataset.fallbackLevel = '2';
                               
-                              // Level 2: Try alternative Railway paths
+                              // Level 2: Try alternative Render paths
                               const filename = url.split('/').pop().split('?')[0];
                               const altUrl = `https://tire-backend-58a9.onrender.com/files/${filename}`;
                               
@@ -940,10 +940,6 @@ function RequestForm() {
                       </span>
                     )}
                   </div>
-                </td>
-                <td>
-                  <button onClick={() => handleEdit(req)}>Edit</button>
-                  <button onClick={() => handleDelete(req.id)}>Delete</button>
                 </td>
               </tr>
             ))}
@@ -1112,7 +1108,7 @@ function RequestForm() {
         </div>
 
         <button type="submit" disabled={Object.keys(errors).length > 0}>
-          {editingId ? 'Update Request' : 'Submit Request'}
+          Submit Request
         </button>
       </form>
 
