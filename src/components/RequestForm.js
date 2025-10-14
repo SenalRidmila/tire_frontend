@@ -94,9 +94,9 @@ function RequestForm() {
     try {
       console.log('🔍 Fetching tire requests from MongoDB Atlas...');
       
-      // Try MongoDB tire_requests collection via Railway backend
+      // Use configured API URL (localhost in dev, Vercel proxy in production)
       try {
-        const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
+        const response = await fetch(API_URL, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',
@@ -111,19 +111,19 @@ function RequestForm() {
           const processedRequests = requestsData.map(req => ({
             ...req,
             id: req._id || req.id,
-            // Handle tire photo URLs from MongoDB
+            // Handle tire photo URLs using configured base URL
             tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
               // If already a full URL, use as is
               if (photoUrl.startsWith('http')) return photoUrl;
               
-              // If it's a relative path, construct full Render URL
+              // If it's a relative path, construct URL using BASE_URL
               if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
                 const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
-                return `https://tire-backend-58a9.onrender.com/uploads/${cleanPath}`;
+                return getApiUrl(`/uploads/${cleanPath}`);
               }
               
               // If it's just a filename, add the full path
-              return `https://tire-backend-58a9.onrender.com/uploads/${photoUrl}`;
+              return getApiUrl(`/uploads/${photoUrl}`);
             }) : []
           }));
           
@@ -742,12 +742,12 @@ function RequestForm() {
                         
                         // Handle relative paths from MongoDB
                         if (originalUrl.startsWith('/uploads/')) {
-                          return `https://tire-backend-58a9.onrender.com${originalUrl}`;
+                          return getApiUrl(originalUrl);
                         }
                         
                         // Handle direct filenames from MongoDB
                         if (!originalUrl.startsWith('/')) {
-                          return `https://tire-backend-58a9.onrender.com/uploads/${originalUrl}`;
+                          return getApiUrl(`/uploads/${originalUrl}`);
                         }
                         
                         // Fallback to demo images for development
@@ -777,19 +777,19 @@ function RequestForm() {
                             if (!e.target.dataset.fallbackLevel) {
                               e.target.dataset.fallbackLevel = '1';
                               
-                              // Level 1: Try direct Render backend URL with different path
+                              // Level 1: Try backend URL with different path
                               const filename = url.split('/').pop().split('?')[0]; // Remove query params
-                              const renderUrl = `https://tire-backend-58a9.onrender.com/uploads/${filename}`;
+                              const backendUrl = getApiUrl(`/uploads/${filename}`);
                               
-                              console.log(`🔄 Level 1 fallback: ${renderUrl}`);
-                              e.target.src = renderUrl;
+                              console.log(`🔄 Level 1 fallback: ${backendUrl}`);
+                              e.target.src = backendUrl;
                               
                             } else if (e.target.dataset.fallbackLevel === '1') {
                               e.target.dataset.fallbackLevel = '2';
                               
-                              // Level 2: Try alternative Render paths
+                              // Level 2: Try alternative backend paths
                               const filename = url.split('/').pop().split('?')[0];
-                              const altUrl = `https://tire-backend-58a9.onrender.com/files/${filename}`;
+                              const altUrl = getApiUrl(`/files/${filename}`);
                               
                               console.log(`🔄 Level 2 fallback: ${altUrl}`);
                               e.target.src = altUrl;
