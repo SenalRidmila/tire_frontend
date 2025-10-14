@@ -25,6 +25,8 @@ function RequestForm() {
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState('');
   
   // Sorting state
   const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'asc' });
@@ -255,26 +257,33 @@ function RequestForm() {
 
     const updatedFormData = { ...formData, [name]: value };
     
-    // Auto-populate fields based on user section
+    // Auto-populate fields based on user section (only if fields are empty)
     if (name === 'userSection' && value) {
       const sectionMappings = {
-        'IT': { costCenter: '1001', officerServiceNo: 'IT001' },
-        'HR': { costCenter: '1002', officerServiceNo: 'HR001' },
-        'Finance': { costCenter: '1003', officerServiceNo: 'FIN001' },
-        'Operations': { costCenter: '1004', officerServiceNo: 'OPS001' },
-        'Marketing': { costCenter: '1005', officerServiceNo: 'MKT001' },
-        'Engineering': { costCenter: '1006', officerServiceNo: 'ENG001' },
-        'Logistics': { costCenter: '1007', officerServiceNo: 'LOG001' },
-        'Administration': { costCenter: '1008', officerServiceNo: 'ADM001' },
-        'Security': { costCenter: '1009', officerServiceNo: 'SEC001' },
-        'Maintenance': { costCenter: '1010', officerServiceNo: 'MNT001' }
+        'IT': { costCenter: '1001', officerServiceNo: 'IT001', emailPrefix: 'it' },
+        'HR': { costCenter: '1002', officerServiceNo: 'HR001', emailPrefix: 'hr' },
+        'Finance': { costCenter: '1003', officerServiceNo: 'FIN001', emailPrefix: 'finance' },
+        'Operations': { costCenter: '1004', officerServiceNo: 'OPS001', emailPrefix: 'operations' },
+        'Marketing': { costCenter: '1005', officerServiceNo: 'MKT001', emailPrefix: 'marketing' },
+        'Engineering': { costCenter: '1006', officerServiceNo: 'ENG001', emailPrefix: 'engineering' },
+        'Logistics': { costCenter: '1007', officerServiceNo: 'LOG001', emailPrefix: 'logistics' },
+        'Administration': { costCenter: '1008', officerServiceNo: 'ADM001', emailPrefix: 'admin' },
+        'Security': { costCenter: '1009', officerServiceNo: 'SEC001', emailPrefix: 'security' },
+        'Maintenance': { costCenter: '1010', officerServiceNo: 'MNT001', emailPrefix: 'maintenance' }
       };
       
       const mapping = sectionMappings[value];
       if (mapping) {
-        updatedFormData.costCenter = mapping.costCenter;
-        updatedFormData.officerServiceNo = mapping.officerServiceNo;
-        updatedFormData.email = `${mapping.officerServiceNo.toLowerCase()}@company.com`;
+        // Only auto-fill if the fields are currently empty or default values
+        if (!formData.costCenter || formData.costCenter === '') {
+          updatedFormData.costCenter = mapping.costCenter;
+        }
+        if (!formData.officerServiceNo || formData.officerServiceNo === '') {
+          updatedFormData.officerServiceNo = mapping.officerServiceNo;
+        }
+        if (!formData.email || formData.email === '' || formData.email.includes('@company.com')) {
+          updatedFormData.email = `${mapping.emailPrefix}@sltelecom.lk`;
+        }
       }
     }
     
@@ -426,6 +435,10 @@ function RequestForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Prevent double submission
+    if (isSubmitting) return;
+    
     if (!validateForm()) {
       alert('❌ Please fix all validation errors before submitting the request.');
       return;
@@ -437,6 +450,9 @@ function RequestForm() {
       return;
     }
 
+    setIsSubmitting(true);
+    setSubmitSuccess('');
+
     try {
       const formDataToSend = new FormData();
       Object.keys(formData).forEach(key => formDataToSend.append(key, formData[key]));
@@ -447,7 +463,7 @@ function RequestForm() {
       const totalSizeMB = selectedFiles.reduce((total, file) => total + file.size, 0) / (1024 * 1024);
       
       if (totalSizeMB > 10) {
-        alert(`📤 Uploading ${totalFiles} files (${totalSizeMB.toFixed(1)}MB). This may take up to 2 minutes due to server startup time...`);
+        console.log(`📤 Uploading ${totalFiles} files (${totalSizeMB.toFixed(1)}MB). This may take up to 3 minutes due to server startup time...`);
       } else if (totalFiles > 0) {
         console.log(`📤 Uploading ${totalFiles} tire photos...`);
       }
@@ -456,33 +472,51 @@ function RequestForm() {
       if (editingId) {
         // For update - use retry mechanism for reliability
         response = await submitWithRetry(formDataToSend, true);
+        
+        // Success message and form reset
+        setSubmitSuccess('✅ Request updated successfully!');
         alert('✅ Request updated successfully!');
+        
       } else {
         // For new submission - use retry mechanism for cold start issues  
         response = await submitWithRetry(formDataToSend, false);
         
-        alert('✅ Request submitted successfully! Manager will be notified via email.');
+        // Success message and form reset
+        setSubmitSuccess('✅ Request submitted successfully! Your tire request has been sent to the manager for approval.');
+        alert('✅ Request submitted successfully! Your tire request has been sent to the manager for approval.');
         
         // Send notification email to manager after successful submission (don't block UI)
         if (response.data) {
-          sendManagerNotification(response.data).catch(emailError => {
-            console.warn('Email notification failed:', emailError);
+          console.log('📧 Sending email notification to manager...');
+          sendManagerNotification(response.data).then(() => {
+            console.log('✅ Manager notification email sent successfully');
+          }).catch(emailError => {
+            console.warn('❌ Email notification failed:', emailError);
             // Don't show error to user since request was submitted successfully
           });
         }
       }
       
-      fetchRequests();
+      // Refresh the requests list and reset form
+      await fetchRequests();
       resetForm();
+      
+      // Clear success message after 5 seconds
+      setTimeout(() => {
+        setSubmitSuccess('');
+      }, 5000);
+      
     } catch (error) {
       console.error('Submit error:', error);
       
-      // Provide specific error messages
+      // Enhanced error handling with better user messages
       if (error.code === 'ECONNABORTED') {
         const fileInfo = selectedFiles.length > 0 ? ` (${selectedFiles.length} files)` : '';
         alert(`⏱️ Upload timeout${fileInfo}. The server may be starting up (cold start). Please wait 30 seconds and try again. Large files may need multiple attempts.`);
       } else if (error.response?.status === 502) {
-        alert('❌ Server temporarily unavailable (502). Please try again in a few moments.');
+        alert('❌ Server temporarily unavailable (502 Bad Gateway). The backend service might be starting up or experiencing issues. Please try again in 1-2 minutes.');
+      } else if (error.response?.status === 503) {
+        alert('❌ Service temporarily unavailable (503). Please try again in a few minutes.');
       } else if (error.response?.status === 413) {
         alert('❌ Files too large. Please reduce image sizes and try again.');
       } else if (error.response?.status >= 500) {
@@ -490,8 +524,10 @@ function RequestForm() {
       } else if (error.response?.status >= 400) {
         alert('❌ Invalid request data. Please check all fields and try again.');
       } else {
-        alert('❌ Failed to submit request. Please check your connection and try again.');
+        alert('❌ Failed to submit request. Please check your internet connection and try again in a few minutes.');
       }
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1057,8 +1093,41 @@ function RequestForm() {
           {errors.comments && <div className="error-message">{errors.comments}</div>}
         </div>
 
-        <button type="submit" disabled={Object.keys(errors).length > 0}>
-          Submit Request
+        {/* Success Message Display */}
+        {submitSuccess && (
+          <div style={{
+            background: 'linear-gradient(135deg, #d4edda, #c3e6cb)',
+            border: '1px solid #c3e6cb',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            margin: '15px 0',
+            color: '#155724',
+            fontSize: '14px',
+            fontWeight: '500',
+            textAlign: 'center',
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            animation: 'fadeIn 0.3s ease-in'
+          }}>
+            {submitSuccess}
+          </div>
+        )}
+
+        <button 
+          type="submit" 
+          disabled={Object.keys(errors).length > 0 || isSubmitting}
+          style={{
+            opacity: isSubmitting ? 0.7 : 1,
+            cursor: isSubmitting ? 'not-allowed' : 'pointer'
+          }}
+        >
+          {isSubmitting ? (
+            <>
+              <span style={{ marginRight: '8px' }}>⏳</span>
+              {editingId ? 'Updating Request...' : 'Submitting Request...'}
+            </>
+          ) : (
+            editingId ? 'Update Request' : 'Submit Request'
+          )}
         </button>
       </form>
 
