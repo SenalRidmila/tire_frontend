@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './RequestForm.css';
+import BackendStatus from './BackendStatus';
 
 const API_URL = '/api/tire-requests'; // Using Vercel proxy to avoid CORS
 const BASE_URL = ''; // Using relative paths through Vercel proxy
@@ -22,6 +23,8 @@ function RequestForm() {
   const [photoModal, setPhotoModal] = useState({ show: false, photos: [], currentIndex: 0 });
   const [photoZoom, setPhotoZoom] = useState(1);
   const [imageLoading, setImageLoading] = useState(false);
+  const [backendError, setBackendError] = useState(null);
+  const [isLoadingData, setIsLoadingData] = useState(false);
 
 
   useEffect(() => { fetchRequests(); }, []);
@@ -41,6 +44,8 @@ function RequestForm() {
 
   const fetchRequests = async (retryCount = 0) => {
     try {
+      setIsLoadingData(true);
+      setBackendError(null);
       console.log('🔍 Fetching tire requests from MongoDB Atlas...');
       
       // Try MongoDB tire_requests collection via Vercel proxy (to avoid CORS)
@@ -77,6 +82,7 @@ function RequestForm() {
           }));
           
           setRequests(processedRequests);
+          setBackendError(null); // Clear any previous errors
           console.log('📊 Successfully loaded', processedRequests.length, 'tire requests with photos from MongoDB');
           return;
         } else if (response.status === 502 && retryCount < 2) {
@@ -109,10 +115,10 @@ function RequestForm() {
       
       // Don't use mock data - keep empty array and show error state
       setRequests([]);
+      setBackendError(error.message);
       console.log('❌ Database connection failed. No data loaded.');
-      
-      // You could set an error state here for UI display
-      // setError(error.message);
+    } finally {
+      setIsLoadingData(false);
     }
   };
 
@@ -628,6 +634,12 @@ function RequestForm() {
 
   return (
     <>
+      <BackendStatus 
+        isLoading={isLoadingData}
+        error={backendError}
+        onRetry={() => fetchRequests()}
+      />
+      
       <form className="request-form" onSubmit={handleSubmit} noValidate>
         <h2>TIRE REQUEST FORM</h2>
 
