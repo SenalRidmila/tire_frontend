@@ -24,6 +24,7 @@ function TTODashboard() {
   const [photoZoom, setPhotoZoom] = useState(1);
   const [touchStart, setTouchStart] = useState(null);
   const [highlightedRequestId, setHighlightedRequestId] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const rowRefs = useRef({});
   const navigate = useNavigate();
@@ -171,6 +172,54 @@ function TTODashboard() {
       alert('Failed to reject request. Please try again.');
     }
   };
+  // Enhanced sorting functionality for TTO Dashboard
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle different data types for sorting
+      if (sortConfig.key === 'id') {
+        aValue = a._id || a.id;
+        bValue = b._id || b.id;
+      } else if (sortConfig.key === 'submittedDate') {
+        aValue = new Date(a.submittedDate || a.createdAt || 0);
+        bValue = new Date(b.submittedDate || b.createdAt || 0);
+      } else if (sortConfig.key === 'replacementDate') {
+        aValue = new Date(a.replacementDate || 0);
+        bValue = new Date(b.replacementDate || 0);
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return ' 🔄';
+    }
+    return sortConfig.direction === 'asc' ? ' ⬆️' : ' ⬇️';
+  };
+
   const deleteRequest = async (id) => {
   if (!window.confirm('Are you sure you want to delete this request?')) return;
   try {
@@ -296,7 +345,9 @@ function TTODashboard() {
         <table className="requests-table">
           <thead>
             <tr>
-              <th>ID</th>
+              <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}} title="Click to sort by ID">
+                ID{getSortIcon('id')}
+              </th>
               <th>Vehicle No.</th>
               <th>Type</th>
               <th>Brand</th>
@@ -308,13 +359,16 @@ function TTODashboard() {
               <th>Wear</th>
               <th>Pattern</th>
               <th>Officer</th>
+              <th onClick={() => handleSort('replacementDate')} style={{cursor: 'pointer'}} title="Click to sort by Date">
+                Date{getSortIcon('replacementDate')}
+              </th>
               <th>Photos</th>
               <th>Status</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {data.map(req => (
+            {getSortedData(data).map(req => (
               <tr 
                 key={req.id}
                 ref={el => rowRefs.current[req.id] = el}
@@ -336,6 +390,11 @@ function TTODashboard() {
                 <td>{req.wearIndicator}</td>
                 <td>{req.wearPattern}</td>
                 <td>{req.officerServiceNo}</td>
+                <td>
+                  {req.replacementDate ? new Date(req.replacementDate).toLocaleDateString('en-CA') : 
+                   req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-CA') : 
+                   req.submittedDate ? new Date(req.submittedDate).toLocaleDateString('en-CA') : 'N/A'}
+                </td>
                 <td>
                   {req.photos && req.photos.length > 0 ? (
                     <div className="photo-thumbnail-container">
@@ -420,7 +479,7 @@ function TTODashboard() {
       <>
         <button className="approve-btn" onClick={() => handleApprove(req.id)}>✓</button>
         <button className="reject-btn" onClick={() => openRejectModal(req.id)}>✗</button>
-        <button className="delete-btn" onClick={() => deleteRequest(req.id)}>🗑️</button>
+        {/* Removed delete button from approval dashboards */}
       </>
     ) : (
       <>

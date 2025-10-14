@@ -28,6 +28,7 @@ function EngineerDashboard() {
   const [requests, setRequests] = useState([]);
   const [pendingRequests, setPendingRequests] = useState([]);
   const [processedRequests, setProcessedRequests] = useState([]);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const [highlightedRequestId, setHighlightedRequestId] = useState(null);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -170,6 +171,54 @@ function EngineerDashboard() {
     }
   };
 
+  // Enhanced sorting functionality for Engineer Dashboard
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle different data types for sorting
+      if (sortConfig.key === 'id') {
+        aValue = a._id || a.id;
+        bValue = b._id || b.id;
+      } else if (sortConfig.key === 'submittedDate') {
+        aValue = new Date(a.submittedDate || a.createdAt || 0);
+        bValue = new Date(b.submittedDate || b.createdAt || 0);
+      } else if (sortConfig.key === 'replacementDate') {
+        aValue = new Date(a.replacementDate || 0);
+        bValue = new Date(b.replacementDate || 0);
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return ' 🔄';
+    }
+    return sortConfig.direction === 'asc' ? ' ⬆️' : ' ⬇️';
+  };
+
   const deleteRequest = async (id) => {
     if (!window.confirm('Are you sure you want to delete this request?')) return;
     try {
@@ -255,7 +304,9 @@ function EngineerDashboard() {
           <table className="request-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}} title="Click to sort by ID">
+                  ID{getSortIcon('id')}
+                </th>
                 <th>Vehicle No.</th>
                 <th>Type</th>
                 <th>Brand</th>
@@ -268,13 +319,16 @@ function EngineerDashboard() {
                 <th>Wear Indicator</th>
                 <th>Wear Pattern</th>
                 <th>Officer</th>
+                <th onClick={() => handleSort('replacementDate')} style={{cursor: 'pointer'}} title="Click to sort by Date">
+                  Date{getSortIcon('replacementDate')}
+                </th>
                 <th>Status</th>
                 <th>Photos</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {pendingRequests.map(req => (
+              {getSortedData(pendingRequests).map(req => (
                 <tr 
                   key={req.id}
                   ref={el => rowRefs.current[req.id] = el}
@@ -295,6 +349,11 @@ function EngineerDashboard() {
                   <td>{req.wearIndicator}</td>
                   <td>{req.wearPattern}</td>
                   <td>{req.officerServiceNo}</td>
+                  <td>
+                    {req.replacementDate ? new Date(req.replacementDate).toLocaleDateString('en-CA') : 
+                     req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-CA') : 
+                     req.submittedDate ? new Date(req.submittedDate).toLocaleDateString('en-CA') : 'N/A'}
+                  </td>
                   <td>
                     <span style={{ 
                       padding: '4px 8px', 
@@ -323,7 +382,7 @@ function EngineerDashboard() {
                    <ViewButton onClick={() => setSelectedRequest(req)} />
 <ApproveButton onClick={() => handleApprove(req.id)} />
 <RejectButton onClick={() => openReject(req.id)} />
-<button title="Delete" onClick={() => deleteRequest(req.id)}>🗑️</button>
+{/* Removed delete button from approval dashboards */}
                   </td>
                 </tr>
               ))}
@@ -341,18 +400,23 @@ function EngineerDashboard() {
           <table className="request-table">
             <thead>
               <tr>
-                <th>ID</th>
+                <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}} title="Click to sort by ID">
+                  ID{getSortIcon('id')}
+                </th>
                 <th>Vehicle No.</th>
                 <th>Type</th>
                 <th>Brand</th>
                 <th>Model</th>
                 <th>Section</th>
+                <th onClick={() => handleSort('replacementDate')} style={{cursor: 'pointer'}} title="Click to sort by Date">
+                  Date{getSortIcon('replacementDate')}
+                </th>
                 <th>Status</th>
                 <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {processedRequests.map(req => (
+              {getSortedData(processedRequests).map(req => (
                 <tr key={req.id}>
                   <td>{req.id?.substring(0, 8)}...</td>
                   <td>{req.vehicleNo}</td>
@@ -360,6 +424,11 @@ function EngineerDashboard() {
                   <td>{req.vehicleBrand}</td>
                   <td>{req.vehicleModel}</td>
                   <td>{req.userSection}</td>
+                  <td>
+                    {req.replacementDate ? new Date(req.replacementDate).toLocaleDateString('en-CA') : 
+                     req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-CA') : 
+                     req.submittedDate ? new Date(req.submittedDate).toLocaleDateString('en-CA') : 'N/A'}
+                  </td>
                   <td>
                     <span style={{ 
                       padding: '4px 8px', 
@@ -373,7 +442,7 @@ function EngineerDashboard() {
                   </td>
                   <td>
                     <ViewButton onClick={() => setSelectedRequest(req)} />
-                    <button title="Delete" onClick={() => deleteRequest(req.id)}>🗑️</button>
+                    {/* Removed delete button from approval dashboards */}
                   </td>
                 </tr>
               ))}

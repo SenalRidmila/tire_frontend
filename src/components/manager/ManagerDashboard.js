@@ -20,6 +20,7 @@ function ManagerDashboard() {
   const [imageLoading, setImageLoading] = useState(false);
   const [touchStart, setTouchStart] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -161,6 +162,54 @@ function ManagerDashboard() {
     }
   };
 
+  // Enhanced sorting functionality for Manager Dashboard
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle different data types for sorting
+      if (sortConfig.key === 'id') {
+        aValue = a._id || a.id;
+        bValue = b._id || b.id;
+      } else if (sortConfig.key === 'submittedDate') {
+        aValue = new Date(a.submittedDate || a.createdAt || 0);
+        bValue = new Date(b.submittedDate || b.createdAt || 0);
+      } else if (sortConfig.key === 'replacementDate') {
+        aValue = new Date(a.replacementDate || 0);
+        bValue = new Date(b.replacementDate || 0);
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return ' 🔄';
+    }
+    return sortConfig.direction === 'asc' ? ' ⬆️' : ' ⬇️';
+  };
+
   const openRejectModal = (id) => {
     setSelectedRequestId(id);
     setShowRejectModal(true);
@@ -260,14 +309,32 @@ function ManagerDashboard() {
         <table className="requests-table">
           <thead>
             <tr>
-              <th>ID</th><th>Vehicle No.</th><th>Type</th><th>Brand</th><th>Model</th><th>Section</th>
-              <th>Tire Size</th><th>Tires</th><th>Tubes</th><th>Present Km</th><th>Previous Km</th>
-              <th>Wear</th><th>Pattern</th><th>Officer</th><th>Status</th><th>Photos</th>
+              <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}} title="Click to sort by ID">
+                ID{getSortIcon('id')}
+              </th>
+              <th>Vehicle No.</th>
+              <th>Type</th>
+              <th>Brand</th>
+              <th>Model</th>
+              <th>Section</th>
+              <th>Tire Size</th>
+              <th>Tires</th>
+              <th>Tubes</th>
+              <th>Present Km</th>
+              <th>Previous Km</th>
+              <th>Wear</th>
+              <th>Pattern</th>
+              <th>Officer</th>
+              <th onClick={() => handleSort('replacementDate')} style={{cursor: 'pointer'}} title="Click to sort by Date">
+                Date{getSortIcon('replacementDate')}
+              </th>
+              <th>Status</th>
+              <th>Photos</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {data.map(req => (
+            {getSortedData(data).map(req => (
               <tr key={req.id}>
                 <td>{req.id?.substring(0, 8)}...</td>
                 <td>{req.vehicleNo}</td>
@@ -283,6 +350,11 @@ function ManagerDashboard() {
                 <td>{req.wearIndicator}</td>
                 <td>{req.wearPattern}</td>
                 <td>{req.officerServiceNo}</td>
+                <td>
+                  {req.replacementDate ? new Date(req.replacementDate).toLocaleDateString('en-CA') : 
+                   req.createdAt ? new Date(req.createdAt).toLocaleDateString('en-CA') : 
+                   req.submittedDate ? new Date(req.submittedDate).toLocaleDateString('en-CA') : 'N/A'}
+                </td>
                 <td><span className={`status-badge ${getStatusColor(req.status)}`}>{req.status || 'Pending'}</span></td>
                 <td>
                   <div className="photos-container">
@@ -392,7 +464,11 @@ function ManagerDashboard() {
                 <td>
                   <div className="action-buttons">
                     <button className="view-btn" title="View Details" onClick={() => handleView(req)}>👁️</button>
-                        <button className="delete-btn" title="Delete" onClick={() => handleDelete(req.id)}>🗑️</button>
+                    
+                    {/* Only show delete button for user's own requests, not in approval dashboards */}
+                    {!showActions && (
+                      <button className="delete-btn" title="Delete" onClick={() => handleDelete(req.id)}>🗑️</button>
+                    )}
 
                     {showActions && (
                       <>

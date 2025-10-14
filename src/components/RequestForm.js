@@ -130,39 +130,117 @@ function RequestForm() {
   const validateField = (name, value, allData = formData) => {
     switch(name) {
       case 'vehicleNo':
+        if (!value.trim()) return 'Vehicle Number is required';
+        if (!/^[A-Z0-9-]+$/i.test(value.trim())) return 'Vehicle Number should contain only letters, numbers and hyphens';
+        if (value.trim().length < 3) return 'Vehicle Number should be at least 3 characters';
+        break;
+
       case 'vehicleType':
+        if (!value.trim()) return 'Vehicle Type is required';
+        if (value.trim().length < 2) return 'Vehicle Type should be at least 2 characters';
+        break;
+
       case 'vehicleBrand':
+        if (!value.trim()) return 'Vehicle Brand is required';
+        if (value.trim().length < 2) return 'Vehicle Brand should be at least 2 characters';
+        break;
+
       case 'vehicleModel':
+        if (!value.trim()) return 'Vehicle Model is required';
+        if (value.trim().length < 2) return 'Vehicle Model should be at least 2 characters';
+        break;
+
       case 'userSection':
-      case 'existingMake':
-      case 'tireSize':
-      case 'officerServiceNo':
-      case 'wearIndicator':
-      case 'wearPattern':
-      case 'comments':
+        if (!value.trim()) return 'User Section is required';
+        if (value.trim().length < 2) return 'User Section should be at least 2 characters';
+        break;
+
       case 'replacementDate':
-        if (!value.trim()) return 'This field is required';
-        if (name === 'replacementDate' && isNaN(Date.parse(value))) return 'Invalid date';
+        if (!value.trim()) return 'Replacement Date is required';
+        if (isNaN(Date.parse(value))) return 'Invalid date format';
+        const selectedDate = new Date(value);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        if (selectedDate < today) return 'Replacement Date cannot be in the past';
+        break;
+
+      case 'existingMake':
+        if (!value.trim()) return 'Existing Make is required';
+        if (value.trim().length < 2) return 'Existing Make should be at least 2 characters';
+        break;
+
+      case 'tireSize':
+        if (!value.trim()) return 'Tire Size is required';
+        if (!/^[\d\w\/\-\s]+$/.test(value.trim())) return 'Invalid tire size format';
+        break;
+
+      case 'noOfTires':
+        if (!value.trim()) return 'Number of Tires is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const tires = parseInt(value);
+        if (tires < 1 || tires > 20) return 'Number of Tires should be between 1 and 20';
+        break;
+
+      case 'noOfTubes':
+        if (!value.trim()) return 'Number of Tubes is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const tubes = parseInt(value);
+        if (tubes < 0 || tubes > 20) return 'Number of Tubes should be between 0 and 20';
+        break;
+
+      case 'costCenter':
+        if (!value.trim()) return 'Cost Center is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        if (value.length < 4 || value.length > 10) return 'Cost Center should be between 4-10 digits';
+        break;
+
+      case 'presentKm':
+        if (!value.trim()) return 'Present Km is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const presentKm = parseInt(value);
+        if (presentKm < 0 || presentKm > 9999999) return 'Present Km should be between 0 and 9,999,999';
+        break;
+
+      case 'previousKm':
+        if (!value.trim()) return 'Previous Km is required';
+        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        const previousKm = parseInt(value);
+        if (previousKm < 0 || previousKm > 9999999) return 'Previous Km should be between 0 and 9,999,999';
+        break;
+
+      case 'wearIndicator':
+        if (!value.trim()) return 'Wear Indicator is required';
+        if (!['Yes', 'No'].includes(value)) return 'Please select Yes or No';
+        break;
+
+      case 'wearPattern':
+        if (!value.trim()) return 'Wear Pattern is required';
+        const validPatterns = ['One Edge', 'Both Edges', 'Center', 'Irregular', 'Normal'];
+        if (!validPatterns.includes(value)) return 'Please select a valid wear pattern';
+        break;
+
+      case 'officerServiceNo':
+        if (!value.trim()) return 'Officer Service Number is required';
+        if (!/^[A-Z0-9]+$/i.test(value.trim())) return 'Service Number should contain only letters and numbers';
+        if (value.trim().length < 3 || value.trim().length > 20) return 'Service Number should be between 3-20 characters';
+        break;
+
+      case 'comments':
+        if (!value.trim()) return 'Comments are required';
+        if (value.trim().length < 10) return 'Comments should be at least 10 characters';
+        if (value.trim().length > 500) return 'Comments should not exceed 500 characters';
         break;
 
       case 'email':
         if (!value.trim()) return 'Email is required';
-        if (!isValidEmail(value)) return 'Invalid email address';
-        break;
-
-      case 'noOfTires':
-      case 'noOfTubes':
-      case 'costCenter':
-      case 'presentKm':
-      case 'previousKm':
-        if (!value.trim()) return 'This field is required';
-        if (!/^\d+$/.test(value)) return 'Only numbers are allowed';
+        if (!isValidEmail(value)) return 'Invalid email address format';
         break;
 
       default:
         return null;
     }
-    // Additional cross-field validation:
+
+    // Cross-field validation for KM readings
     if (name === 'previousKm' || name === 'presentKm') {
       const prevKm = Number(allData.previousKm);
       const presKm = Number(allData.presentKm);
@@ -170,8 +248,12 @@ function RequestForm() {
         if (prevKm >= presKm) {
           return 'Previous Km must be less than Present Km';
         }
+        if ((presKm - prevKm) > 500000) {
+          return 'KM difference seems too large (>500,000km)';
+        }
       }
     }
+
     return null;
   };
 
@@ -288,12 +370,18 @@ function RequestForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Comprehensive validation
     if (!validateForm()) {
-      alert('Please fix validation errors before submitting.');
+      alert('❌ Please fix all validation errors before submitting the request.');
       return;
     }
 
-
+    // Check if photos are selected for new requests
+    if (!editingId && selectedFiles.length === 0) {
+      alert('❌ Please attach at least one tire photo before submitting.');
+      return;
+    }
 
     try {
       const formDataToSend = new FormData();
@@ -303,101 +391,284 @@ function RequestForm() {
       let response;
       if (editingId) {
         // For update, assume PUT endpoint
-        response = await axios.put(`${API_URL}/${editingId}`, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
-        alert('Request updated successfully!');
+        response = await axios.put(`${API_URL}/${editingId}`, formDataToSend, { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 30000 // 30 second timeout
+        });
+        alert('✅ Request updated successfully!');
       } else {
-        response = await axios.post(API_URL, formDataToSend, { headers: { 'Content-Type': 'multipart/form-data' } });
+        response = await axios.post(API_URL, formDataToSend, { 
+          headers: { 'Content-Type': 'multipart/form-data' },
+          timeout: 30000 // 30 second timeout
+        });
         
-        // Send notification email to manager after successful submission
+        alert('✅ Request submitted successfully! Manager will be notified via email.');
+        
+        // Send notification email to manager after successful submission (don't block UI)
         if (response.data) {
-          await sendManagerNotification(response.data);
+          sendManagerNotification(response.data).catch(emailError => {
+            console.warn('Email notification failed:', emailError);
+            // Don't show error to user since request was submitted successfully
+          });
         }
-        
-        alert('Request submitted successfully! Manager has been notified via email.');
       }
+      
       fetchRequests();
       resetForm();
     } catch (error) {
       console.error('Submit error:', error);
-      alert('Failed to submit request. Please try again.');
+      
+      // Provide specific error messages
+      if (error.code === 'ECONNABORTED') {
+        alert('❌ Request timeout. Please check your internet connection and try again.');
+      } else if (error.response?.status === 502) {
+        alert('❌ Server temporarily unavailable (502). Please try again in a few moments.');
+      } else if (error.response?.status === 413) {
+        alert('❌ Files too large. Please reduce image sizes and try again.');
+      } else if (error.response?.status >= 500) {
+        alert('❌ Server error. Please contact the administrator if this persists.');
+      } else if (error.response?.status >= 400) {
+        alert('❌ Invalid request data. Please check all fields and try again.');
+      } else {
+        alert('❌ Failed to submit request. Please check your connection and try again.');
+      }
     }
   };
 
-  // Send email notification to manager
+  // Enhanced email notification system for the complete workflow
   const sendManagerNotification = async (requestData) => {
     try {
-      const managerEmail = 'kaushalya@slt.lk'; // Manager email
-      // Use production Vercel URL instead of localhost
-      const dashboardLink = `https://tire-frontend.vercel.app/manager?requestId=${requestData.id}`;
+      const managerEmail = 'slthrmanager@gmail.com';
+      const dashboardLink = `https://tire-slt.vercel.app/manager-dashboard?requestId=${requestData._id || requestData.id}`;
       
       const emailData = {
         to: managerEmail,
-        subject: `New Tire Request Submitted - ${requestData.vehicleNo}`,
+        subject: `🚗 New Tire Request - ${requestData.vehicleNo} (ID: ${requestData._id || requestData.id})`,
         html: `
-          <h2>🚗 New Tire Request Notification</h2>
-          <p>A new tire replacement request has been submitted and requires your approval.</p>
-          
-          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <h3>Request Details:</h3>
-            <p><strong>Vehicle Number:</strong> ${requestData.vehicleNo}</p>
-            <p><strong>Vehicle Type:</strong> ${requestData.vehicleType}</p>
-            <p><strong>Brand/Model:</strong> ${requestData.vehicleBrand} ${requestData.vehicleModel}</p>
-            <p><strong>Section:</strong> ${requestData.userSection}</p>
-            <p><strong>Tire Size:</strong> ${requestData.tireSize}</p>
-            <p><strong>Number of Tires:</strong> ${requestData.noOfTires}</p>
-            <p><strong>Number of Tubes:</strong> ${requestData.noOfTubes}</p>
-            <p><strong>Present KM:</strong> ${requestData.presentKm}</p>
-            <p><strong>Officer Service No:</strong> ${requestData.officerServiceNo}</p>
-            <p><strong>Comments:</strong> ${requestData.comments || 'None'}</p>
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #1e3a8a; margin: 0;">🚗 New Tire Request Submitted</h1>
+                <p style="color: #64748b; font-size: 16px; margin: 10px 0 0 0;">Request requires your immediate attention</p>
+              </div>
+              
+              <div style="background: #f1f5f9; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #3b82f6;">
+                <h3 style="color: #1e40af; margin-top: 0;">📋 Request Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Request ID:</td><td>${requestData._id || requestData.id}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Number:</td><td>${requestData.vehicleNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Type:</td><td>${requestData.vehicleType}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Brand/Model:</td><td>${requestData.vehicleBrand} ${requestData.vehicleModel}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Section:</td><td>${requestData.userSection}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Tire Size:</td><td>${requestData.tireSize}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Number of Tires:</td><td>${requestData.noOfTires}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Number of Tubes:</td><td>${requestData.noOfTubes}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Present KM:</td><td>${requestData.presentKm}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Officer Service No:</td><td>${requestData.officerServiceNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Submitted Date:</td><td>${new Date().toLocaleString()}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Email:</td><td>${requestData.email}</td></tr>
+                </table>
+              </div>
+              
+              <div style="background: #fef3c7; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #f59e0b;">
+                <h4 style="color: #92400e; margin-top: 0;">💬 Comments:</h4>
+                <p style="color: #92400e; margin: 0;">${requestData.comments || 'No additional comments provided.'}</p>
+              </div>
+              
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${dashboardLink}" 
+                   style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px; box-shadow: 0 4px 14px 0 rgba(0,118,255,.39);">
+                  🔍 Open Manager Dashboard
+                </a>
+              </div>
+              
+              <div style="background: #fee2e2; padding: 15px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+                <p style="color: #dc2626; margin: 0; font-weight: bold;">⚠️ Action Required: Please review and approve/reject this request to proceed with the workflow.</p>
+              </div>
+              
+              <div style="text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                <p style="color: #6b7280; font-size: 12px; margin: 0;"><em>This is an automated notification from the SLT Tire Management System.</em></p>
+              </div>
+            </div>
           </div>
-          
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${dashboardLink}" 
-               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              🔍 Review Request in Manager Dashboard
-            </a>
-          </div>
-          
-          <p style="color: #666; font-size: 12px;">
-            Click the button above to access the Manager Dashboard and approve or reject this request.
-          </p>
         `
       };
 
-      // Try to send email through backend
-      const emailEndpoints = [
-        '/api/send-email',
-        '/api/notifications/email',
-        '/api/mail/send'
-      ];
-
-      let emailSent = false;
-      for (const endpoint of emailEndpoints) {
-        try {
-          await axios.post(endpoint, emailData);
-          console.log(`✅ Email sent successfully via: ${endpoint}`);
-          emailSent = true;
-          break;
-        } catch (error) {
-          console.log(`❌ Failed email endpoint: ${endpoint}`, error.response?.status);
-          continue;
-        }
-      }
-
-      if (!emailSent) {
-        console.log('📧 Email notification simulated (backend unavailable)');
-        // Show notification in console for development
-        console.log('MANAGER EMAIL NOTIFICATION:', {
-          to: managerEmail,
-          subject: emailData.subject,
-          dashboardLink: dashboardLink,
-          requestData: requestData
-        });
-      }
-
+      await axios.post('/api/send-email', emailData, { timeout: 10000 });
+      console.log('✅ Manager notification email sent successfully');
     } catch (error) {
-      console.error('Email notification error:', error);
-      // Don't fail the request submission if email fails
+      console.log('📧 Manager email notification failed:', error.response?.status);
+      // Show notification in console for development
+      console.log('MANAGER EMAIL NOTIFICATION:', {
+        to: managerEmail,
+        subject: emailData.subject,
+        dashboardLink: dashboardLink,
+        requestData: requestData
+      });
+    }
+  };
+
+  // Send TTO notification after manager approval
+  const sendTTONotification = async (requestData) => {
+    try {
+      const ttoEmail = 'slttransportofficer@gmail.com';
+      const dashboardLink = `https://tire-slt.vercel.app/tto-dashboard?requestId=${requestData._id || requestData.id}`;
+      
+      const emailData = {
+        to: ttoEmail,
+        subject: `🚛 Manager Approved - Tire Request ${requestData.vehicleNo} (ID: ${requestData._id || requestData.id})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #059669; margin: 0;">✅ Manager Approved Tire Request</h1>
+                <p style="color: #64748b; font-size: 16px; margin: 10px 0 0 0;">Request forwarded for TTO review</p>
+              </div>
+              <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                <h3 style="color: #065f46; margin-top: 0;">📋 Approved Request Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Request ID:</td><td>${requestData._id || requestData.id}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Number:</td><td>${requestData.vehicleNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Tire Size:</td><td>${requestData.tireSize}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Number of Tires:</td><td>${requestData.noOfTires}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Manager Approval:</td><td style="color: #059669; font-weight: bold;">✅ APPROVED</td></tr>
+                </table>
+              </div>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${dashboardLink}" 
+                   style="background: linear-gradient(135deg, #059669, #047857); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                  🚛 Open TTO Dashboard
+                </a>
+              </div>
+            </div>
+          </div>
+        `
+      };
+
+      await axios.post('/api/send-email', emailData, { timeout: 10000 });
+      console.log('✅ TTO notification email sent successfully');
+    } catch (error) {
+      console.log('📧 TTO email notification failed:', error.response?.status);
+    }
+  };
+
+  // Send Engineer notification after TTO assignment
+  const sendEngineerNotification = async (requestData, assignedEngineer) => {
+    try {
+      const engineerEmail = 'engineerslt38@gmail.com';
+      const dashboardLink = `https://tire-slt.vercel.app/engineer-dashboard?requestId=${requestData._id || requestData.id}`;
+      
+      const emailData = {
+        to: engineerEmail,
+        subject: `🔧 New Assignment - Tire Inspection ${requestData.vehicleNo} (ID: ${requestData._id || requestData.id})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #7c3aed; margin: 0;">🔧 New Engineering Assignment</h1>
+                <p style="color: #64748b; font-size: 16px; margin: 10px 0 0 0;">Tire inspection and approval required</p>
+              </div>
+              <div style="background: #f3e8ff; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #8b5cf6;">
+                <h3 style="color: #5b21b6; margin-top: 0;">🔍 Inspection Assignment:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Request ID:</td><td>${requestData._id || requestData.id}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Number:</td><td>${requestData.vehicleNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Tire Size:</td><td>${requestData.tireSize}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Number of Tires:</td><td>${requestData.noOfTires}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Status:</td><td style="color: #059669;">Manager ✅ → TTO ✅ → Engineer 🔄</td></tr>
+                </table>
+              </div>
+              <div style="text-align: center; margin: 30px 0;">
+                <a href="${dashboardLink}" 
+                   style="background: linear-gradient(135deg, #7c3aed, #5b21b6); color: white; padding: 15px 30px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: bold; font-size: 16px;">
+                  🔧 Open Engineer Dashboard
+                </a>
+              </div>
+            </div>
+          </div>
+        `
+      };
+
+      await axios.post('/api/send-email', emailData, { timeout: 10000 });
+      console.log('✅ Engineer notification email sent successfully');
+    } catch (error) {
+      console.log('📧 Engineer email notification failed:', error.response?.status);
+    }
+  };
+
+  // Send Final Approval notification to user  
+  const sendFinalApprovalNotification = async (requestData) => {
+    try {
+      const userEmail = requestData.email;
+      
+      const emailData = {
+        to: userEmail,
+        subject: `🎉 APPROVED - Your Tire Request ${requestData.vehicleNo} (ID: ${requestData._id || requestData.id})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #059669; margin: 0;">🎉 Request APPROVED!</h1>
+                <p style="color: #64748b; font-size: 16px; margin: 10px 0 0 0;">Your tire request has been fully approved</p>
+              </div>
+              <div style="background: #ecfdf5; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #10b981;">
+                <h3 style="color: #065f46; margin-top: 0;">✅ Approved Request Summary:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Request ID:</td><td>${requestData._id || requestData.id}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Number:</td><td>${requestData.vehicleNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Tire Size:</td><td>${requestData.tireSize}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Number of Tires:</td><td>${requestData.noOfTires}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Final Status:</td><td style="color: #059669; font-weight: bold; font-size: 18px;">🎉 FULLY APPROVED</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+      };
+
+      await axios.post('/api/send-email', emailData, { timeout: 10000 });
+      console.log('✅ Final approval notification sent to user');
+    } catch (error) {
+      console.log('📧 User approval email notification failed:', error.response?.status);
+    }
+  };
+
+  // Send Seller notification for final processing
+  const sendSellerNotification = async (requestData) => {
+    try {
+      const sellerEmail = 'slttiresellerseller@gmail.com';
+      
+      const emailData = {
+        to: sellerEmail,
+        subject: `💼 New Order - Process Tire Delivery ${requestData.vehicleNo} (ID: ${requestData._id || requestData.id})`,
+        html: `
+          <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #f9f9f9; padding: 20px;">
+            <div style="background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+              <div style="text-align: center; margin-bottom: 30px;">
+                <h1 style="color: #dc2626; margin: 0;">💼 New Tire Order</h1>
+                <p style="color: #64748b; font-size: 16px; margin: 10px 0 0 0;">Fully approved request ready for processing</p>
+              </div>
+              <div style="background: #fef2f2; padding: 20px; border-radius: 8px; margin: 20px 0; border-left: 4px solid #ef4444;">
+                <h3 style="color: #991b1b; margin-top: 0;">📦 Order Details:</h3>
+                <table style="width: 100%; border-collapse: collapse;">
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Order ID:</td><td>${requestData._id || requestData.id}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Vehicle Number:</td><td>${requestData.vehicleNo}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Tire Size:</td><td style="color: #dc2626; font-weight: bold;">${requestData.tireSize}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Quantity - Tires:</td><td style="color: #dc2626; font-weight: bold;">${requestData.noOfTires}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Quantity - Tubes:</td><td style="color: #dc2626; font-weight: bold;">${requestData.noOfTubes}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Section/Department:</td><td>${requestData.userSection}</td></tr>
+                  <tr><td style="padding: 5px 0; font-weight: bold;">Customer Email:</td><td>${requestData.email}</td></tr>
+                </table>
+              </div>
+            </div>
+          </div>
+        `
+      };
+
+      await axios.post('/api/send-email', emailData, { timeout: 10000 });
+      console.log('✅ Seller notification email sent successfully');
+    } catch (error) {
+      console.log('📧 Seller email notification failed:', error.response?.status);
     }
   };
 
