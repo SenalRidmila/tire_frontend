@@ -1,5 +1,8 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MsalProvider } from '@azure/msal-react';
+import { PublicClientApplication } from '@azure/msal-browser';
+import { msalConfig } from './config/authConfig';
 
 import Login from './components/Login';
 import Home from './components/Home';
@@ -15,9 +18,13 @@ import TireOrder from './components/TireOrder';
 import SellerDashboard from './components/SellerDashboard';
 import PrivateRoute from './components/PrivateRoute';
 
+// Initialize MSAL instance
+const msalInstance = new PublicClientApplication(msalConfig);
+
 function App() {
   return (
-    <BrowserRouter>
+    <MsalProvider instance={msalInstance}>
+      <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/login" />} />
 
@@ -70,6 +77,7 @@ function App() {
 
       </Routes>
     </BrowserRouter>
+    </MsalProvider>
   );
 }
 

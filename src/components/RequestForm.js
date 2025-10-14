@@ -502,6 +502,11 @@ function RequestForm() {
                       const getImageUrl = (originalUrl) => {
                         if (!originalUrl) return null;
                         
+                        // Handle base64 data URLs directly (common from MongoDB storage)
+                        if (originalUrl.startsWith('data:image/')) {
+                          return originalUrl; // Use base64 data URL directly
+                        }
+                        
                         // If already a full HTTP URL from MongoDB, use as is
                         if (originalUrl.startsWith('http')) return originalUrl;
                         
@@ -510,13 +515,13 @@ function RequestForm() {
                           return `https://tire-backend-58a9.onrender.com${originalUrl}`;
                         }
                         
-                        // Handle direct filenames from MongoDB
-                        if (!originalUrl.startsWith('/')) {
+                        // Handle direct filenames from MongoDB (skip if it looks like base64 fragment)
+                        if (!originalUrl.startsWith('/') && !originalUrl.includes('base64') && originalUrl.length < 100) {
                           return `https://tire-backend-58a9.onrender.com/uploads/${originalUrl}`;
                         }
                         
                         // Fallback to demo images for development
-                        return originalUrl.startsWith('/images/') ? originalUrl : `/images/${originalUrl}`;
+                        return originalUrl.startsWith('/images/') ? originalUrl : `/images/tire1.jpeg`;
                       };
                       
                       const imageUrl = getImageUrl(url);
@@ -538,75 +543,47 @@ function RequestForm() {
                             console.warn(`❌ Image loading failed: ${e.target.src}`);
                             console.warn(`Original URL: ${url}`);
                             
-                            // Enhanced multi-level fallback system
+                            // Don't try fallbacks for base64 data URLs that failed
+                            if (url.startsWith('data:image/')) {
+                              console.warn('Base64 data URL failed to load - using demo image');
+                              e.target.src = '/images/tire1.jpeg';
+                              return;
+                            }
+                            
+                            // Enhanced multi-level fallback system for regular URLs
                             if (!e.target.dataset.fallbackLevel) {
                               e.target.dataset.fallbackLevel = '1';
                               
                               // Level 1: Try direct Render backend URL with different path
                               const filename = url.split('/').pop().split('?')[0]; // Remove query params
-                              const renderUrl = `https://tire-backend-58a9.onrender.com/uploads/${filename}`;
                               
-                              console.log(`🔄 Level 1 fallback: ${renderUrl}`);
-                              e.target.src = renderUrl;
-                              
+                              // Skip if filename looks like base64 fragment
+                              if (filename && filename.length < 100 && !filename.includes('base64')) {
+                                const renderUrl = `https://tire-backend-58a9.onrender.com/uploads/${filename}`;
+                                console.log(`🔄 Level 1 fallback: ${renderUrl}`);
+                                e.target.src = renderUrl;
+                                return;
+                              }
                             } else if (e.target.dataset.fallbackLevel === '1') {
                               e.target.dataset.fallbackLevel = '2';
                               
                               // Level 2: Try alternative Render paths
                               const filename = url.split('/').pop().split('?')[0];
-                              const altUrl = `https://tire-backend-58a9.onrender.com/files/${filename}`;
-                              
-                              console.log(`🔄 Level 2 fallback: ${altUrl}`);
-                              e.target.src = altUrl;
-                              
-                            } else if (e.target.dataset.fallbackLevel === '2') {
-                              e.target.dataset.fallbackLevel = '3';
-                              
-                              // Level 3: Try demo images
-                              const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
-                              const demoUrl = demoImages[idx % demoImages.length];
-                              
-                              console.log(`🔄 Level 3 fallback (demo): ${demoUrl}`);
-                              e.target.src = demoUrl;
-                              
-                            } else if (e.target.dataset.fallbackLevel === '3') {
-                              e.target.dataset.fallbackLevel = '4';
-                              
-                              // Level 4: Try placeholder image
-                              console.log(`🔄 Level 4 fallback: placeholder image`);
-                              e.target.src = '/images/default-profile.png';
-                              
-                            } else {
-                              // Final fallback: Show styled error message
-                              console.error(`💥 All image fallbacks failed for: ${url}`);
-                              e.target.style.display = 'none';
-                              
-                              if (!e.target.nextElementSibling?.classList?.contains('photo-error')) {
-                                e.target.insertAdjacentHTML('afterend', 
-                                  `<div class="photo-error" style="
-                                    background: linear-gradient(135deg, #f8d7da, #f5c6cb);
-                                    border: 1px solid #f5c6cb;
-                                    border-radius: 6px;
-                                    padding: 8px;
-                                    margin: 2px;
-                                    text-align: center;
-                                    color: #721c24;
-                                    font-size: 11px;
-                                    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-                                    min-width: 80px;
-                                    min-height: 60px;
-                                    display: flex;
-                                    flex-direction: column;
-                                    justify-content: center;
-                                    align-items: center;
-                                  ">
-                                    <div style="font-size: 16px; margin-bottom: 4px;">📷</div>
-                                    <div style="font-weight: bold;">Image Failed</div>
-                                    <div style="font-size: 9px; opacity: 0.8;">File missing or corrupted</div>
-                                  </div>`
-                                );
+                              if (filename && filename.length < 100 && !filename.includes('base64')) {
+                                const altUrl = `https://tire-backend-58a9.onrender.com/files/${filename}`;
+                                console.log(`🔄 Level 2 fallback: ${altUrl}`);
+                                e.target.src = altUrl;
+                                return;
                               }
                             }
+                            
+                            // Final fallback: Use demo images
+                            e.target.dataset.fallbackLevel = 'final';
+                            const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
+                            const demoUrl = demoImages[idx % demoImages.length];
+                            
+                            console.log(`🔄 Final fallback (demo): ${demoUrl}`);
+                            e.target.src = demoUrl;
                           }}
                           onLoad={() => {
                             console.log(`✅ Successfully loaded tire photo: ${imageUrl}`);

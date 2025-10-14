@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMsal } from '@azure/msal-react';
+import AuthService from '../services/AuthService';
+import { authModes } from '../config/authConfig';
 import './Login.css';
 
 function Login() {
   const navigate = useNavigate();
+  const { instance, accounts } = useMsal();
   const [formData, setFormData] = useState({
     userId: '',
     password: ''
@@ -18,6 +22,32 @@ function Login() {
     });
   };
 
+  // Handle Azure AD login
+  const handleAzureLogin = async () => {
+    setLoading(true);
+    setMessage('Redirecting to Azure AD login...');
+    
+    try {
+      AuthService.setAuthMode(authModes.AZURE_AD);
+      const result = await AuthService.login();
+      
+      if (result.success) {
+        setMessage('✅ Azure AD login successful! Welcome to the Tire Management System.');
+        setTimeout(() => {
+          navigate('/home');
+        }, 1000);
+      } else {
+        setMessage(`❌ Azure AD login failed: ${result.error}`);
+      }
+    } catch (error) {
+      console.error('Azure AD login error:', error);
+      setMessage(`❌ Azure AD login error: ${error.message}`);
+    }
+    
+    setLoading(false);
+  };
+
+  // Handle traditional form login (MongoDB/Demo)
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -27,7 +57,7 @@ function Login() {
     
     console.log('Login attempt:', { userId, password }); // Debug log
     
-    // Validate input
+    // Validate input for form-based login
     if (!userId.trim() || !password.trim()) {
       setMessage('Please enter both User ID and Password.');
       setLoading(false);
@@ -35,58 +65,35 @@ function Login() {
     }
 
     try {
-      // Try to authenticate with MongoDB employee collection via Railway backend
-      console.log('🔍 Attempting MongoDB employee authentication...'); // Debug log
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          employeeId: userId,
-          password: password
-        }),
-      });
-
-      if (response.ok) {
-        const userData = await response.json();
-        
-        // Store user info and authentication status for session
-        localStorage.setItem('user', JSON.stringify({
-          id: userData.employeeId,
-          username: userData.name || userId,
-          role: userData.role || 'user',
-          department: userData.department,
-          timestamp: new Date().toISOString()
-        }));
-        
-        // Set authentication status
-        localStorage.setItem('isAuthenticated', 'true');
-        localStorage.setItem('currentUser', JSON.stringify({
-          id: userData.employeeId,
-          name: userData.name || userId,
-          role: userData.role || 'user',
-          department: userData.department
-        }));
-        
-        setMessage('✅ Login successful! Employee authenticated from MongoDB. Welcome to the Tire Management System.');
+      // Use AuthService for unified authentication - always use MongoDB for form login
+      AuthService.setAuthMode(authModes.MONGODB);
+      const result = await AuthService.login(userId, password);
+      
+      if (result.success) {
+        let authModeDisplay = result.authMode === authModes.MONGODB ? 'MongoDB' : 'Demo';
+        setMessage(`✅ Login successful! Employee authenticated from ${authModeDisplay}. Welcome to the Tire Management System.`);
         setTimeout(() => {
           navigate('/home');
         }, 1000);
       } else {
-        // Backend returned error (400, 401, etc.) - fallback to demo mode
-        console.log('Backend error, activating fallback mode'); // Debug log
-        throw new Error(`Backend error: ${response.status}`);
+        setMessage(`❌ Login failed: ${result.error}`);
       }
     } catch (error) {
       console.error('Login error:', error);
-      
-      // No demo data - show database connection error
-      setMessage('❌ Database connection failed. Please contact administrator or try again later.');
+      setMessage(`❌ Login error: ${error.message}`);
     }
     
     setLoading(false);
   };
+
+
+
+  // Check if user is already logged in
+  useEffect(() => {
+    if (AuthService.isAuthenticated()) {
+      navigate('/home');
+    }
+  }, [navigate]);
 
   return (
     <div
@@ -106,6 +113,64 @@ function Login() {
       <div className="login-card">
         <div className="login-left">
           <h2>LOGIN</h2>
+          
+          {/* Microsoft Organizational Login Button */}
+          <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+            <button 
+              type="button"
+              onClick={handleAzureLogin}
+              disabled={loading}
+              style={{
+                width: '100%',
+                padding: '15px 20px',
+                background: '#0078d4',
+                color: 'white',
+                border: 'none',
+                borderRadius: '6px',
+                cursor: loading ? 'not-allowed' : 'pointer',
+                opacity: loading ? 0.6 : 1,
+                fontSize: '16px',
+                fontWeight: '500',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '10px',
+                boxShadow: '0 2px 4px rgba(0,120,212,0.3)',
+                transition: 'all 0.3s ease'
+              }}
+              onMouseOver={(e) => {
+                if (!loading) {
+                  e.target.style.background = '#106ebe';
+                  e.target.style.transform = 'translateY(-1px)';
+                }
+              }}
+              onMouseOut={(e) => {
+                if (!loading) {
+                  e.target.style.background = '#0078d4';
+                  e.target.style.transform = 'translateY(0px)';
+                }
+              }}
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M11.4 24H0V12.6h11.4V24zM24 24H12.6V12.6H24V24zM11.4 11.4H0V0h11.4v11.4zM24 11.4H12.6V0H24v11.4z"/>
+              </svg>
+              {loading ? 'Signing in...' : 'Use your organizational Microsoft account'}
+            </button>
+          </div>
+          
+          {/* OR Divider */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            margin: '20px 0',
+            color: '#666'
+          }}>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #ddd' }} />
+            <span style={{ padding: '0 15px', fontSize: '14px', fontWeight: '500' }}>OR</span>
+            <hr style={{ flex: 1, border: 'none', borderTop: '1px solid #ddd' }} />
+          </div>
+
+          {/* Regular Login Form */}
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label><i className="fa fa-user"></i> User ID</label>
