@@ -572,11 +572,11 @@ function RequestForm() {
         `
       };
 
-      // Try to send email through backend
+      // Try to send email through backend (using proper API URLs)
       const emailEndpoints = [
-        '/api/send-email',
-        '/api/notifications/email',
-        '/api/mail/send'
+        `${getApiUrl('/api/send-email')}`,
+        `${getApiUrl('/api/notifications/email')}`,
+        `${getApiUrl('/api/mail/send')}`
       ];
 
       let emailSent = false;
