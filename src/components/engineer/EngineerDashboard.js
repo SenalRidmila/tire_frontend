@@ -47,7 +47,7 @@ function EngineerDashboard() {
       console.log('🔍 Engineer Dashboard: Fetching tire requests from MongoDB...');
       
       // Try MongoDB tire_requests collection via Railway backend (same as TTO Dashboard)
-      const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
+      const response = await fetch('/api/tire-requests', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

@@ -60,7 +60,7 @@ function TTODashboard() {
       console.log('🔍 TTO Dashboard: Fetching tire requests from MongoDB...');
       
       // Try MongoDB tire_requests collection via Railway backend
-      const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
+      const response = await fetch('/api/tire-requests', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

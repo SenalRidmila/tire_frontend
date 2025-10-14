@@ -37,7 +37,7 @@ function Login() {
     try {
       // Try to authenticate with MongoDB employee collection via Railway backend
       console.log('🔍 Attempting MongoDB employee authentication...'); // Debug log
-      const response = await fetch('https://tire-backend-58a9.onrender.com/api/auth/login', {
+      const response = await fetch('/api/auth/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
