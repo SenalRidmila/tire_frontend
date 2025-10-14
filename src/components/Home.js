@@ -42,6 +42,28 @@ function Home() {
     navigate('/request');
   };
 
+  const navigateToDashboard = () => {
+    if (currentUser?.role) {
+      switch (currentUser.role.toLowerCase()) {
+        case 'manager':
+          navigate('/manager');
+          break;
+        case 'tto':
+        case 'transport officer':
+          navigate('/tto-dashboard');
+          break;
+        case 'engineer':
+          navigate('/engineer-dashboard');
+          break;
+        case 'seller':
+          navigate('/seller-dashboard');
+          break;
+        default:
+          break;
+      }
+    }
+  };
+
   return (
     <div className="home-wrapper">
       <nav className="navbar">

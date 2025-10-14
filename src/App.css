@@ -1,43 +1,9 @@
 /* Global styles */
-* {
-  box-sizing: border-box;
-}
-
 body {
-  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  font-family: Arial, sans-serif;
   margin: 0;
   padding: 0;
   background-color: #f4f4f4;
-  line-height: 1.6;
-}
-
-/* Responsive container */
-.container {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 0 20px;
-}
-
-/* Mobile First Approach */
-@media (max-width: 576px) {
-  .container {
-    padding: 0 15px;
-  }
-}
-
-/* Tablet styles */
-@media (min-width: 577px) and (max-width: 768px) {
-  .container {
-    padding: 0 20px;
-  }
-}
-
-/* Desktop styles */
-@media (min-width: 769px) {
-  .container {
-    padding: 0 30px;
-  }
 }
 
 /* Login Page */

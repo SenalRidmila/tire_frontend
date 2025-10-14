@@ -118,9 +118,7 @@ function TireOrder() {
         if (response.status === 200) alert('Order updated successfully!');
       } else {
         response = await axios.post(API_URL, payload);
-        if ([200, 201].includes(response.status)) {
-          alert('🎉 Order created successfully! \n\n📧 Tire seller (slttiersellerseller@gmail.com) has been notified via email and will process your order shortly.');
-        }
+        if ([200, 201].includes(response.status)) alert('Order created successfully!');
       }
       resetForm();
       fetchOrders();

@@ -7,6 +7,7 @@ const SellerDashboard = () => {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const API_URL = process.env.NODE_ENV === 'production' 
     ? 'https://tire-backend-58a9.onrender.com/api'
@@ -31,28 +32,59 @@ const SellerDashboard = () => {
     } catch (error) {
       console.error('Error fetching orders:', error);
       setError('Failed to load tire orders. Please try again.');
-      // Use mock data for demo
-      setOrders([
-        {
-          id: 'ORD001',
-          vehicleNo: 'CAR-123',
-          tireBrand: 'Michelin',
-          quantity: 4,
-          status: 'PENDING',
-          vendorEmail: 'slttiersellerseller@gmail.com'
-        },
-        {
-          id: 'ORD002', 
-          vehicleNo: 'VAN-456',
-          tireBrand: 'Bridgestone',
-          quantity: 2,
-          status: 'CONFIRMED',
-          vendorEmail: 'slttiersellerseller@gmail.com'
-        }
-      ]);
+      // No mock data - keep empty array to show real error state
+      setOrders([]);
     } finally {
       setLoading(false);
     }
+  };
+
+  // Enhanced sorting functionality for Seller Dashboard
+  const handleSort = (key) => {
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const getSortedData = (data) => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aValue = a[sortConfig.key];
+      let bValue = b[sortConfig.key];
+
+      // Handle different data types for sorting
+      if (sortConfig.key === 'id') {
+        aValue = a._id || a.id;
+        bValue = b._id || b.id;
+      } else if (sortConfig.key === 'orderDate') {
+        aValue = new Date(a.orderDate || a.createdAt || 0);
+        bValue = new Date(b.orderDate || b.createdAt || 0);
+      } else if (sortConfig.key === 'replacementDate') {
+        aValue = new Date(a.replacementDate || 0);
+        bValue = new Date(b.replacementDate || 0);
+      } else if (typeof aValue === 'string') {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (aValue < bValue) {
+        return sortConfig.direction === 'asc' ? -1 : 1;
+      }
+      if (aValue > bValue) {
+        return sortConfig.direction === 'asc' ? 1 : -1;
+      }
+      return 0;
+    });
+  };
+
+  const getSortIcon = (columnKey) => {
+    if (sortConfig.key !== columnKey) {
+      return ' 🔄';
+    }
+    return sortConfig.direction === 'asc' ? ' ⬆️' : ' ⬇️';
   };
 
   const handleConfirmOrder = async (orderId) => {
@@ -189,16 +221,21 @@ const SellerDashboard = () => {
             <table className="orders-table">
               <thead>
                 <tr>
-                  <th>Order ID</th>
+                  <th onClick={() => handleSort('id')} style={{cursor: 'pointer'}} title="Click to sort by ID">
+                    Order ID{getSortIcon('id')}
+                  </th>
                   <th>Vehicle No</th>
                   <th>Tire Brand</th>
                   <th>Quantity</th>
+                  <th onClick={() => handleSort('orderDate')} style={{cursor: 'pointer'}} title="Click to sort by Date">
+                    Date{getSortIcon('orderDate')}
+                  </th>
                   <th>Status</th>
                   <th>Actions</th>
                 </tr>
               </thead>
               <tbody>
-                {orders.map(order => (
+                {getSortedData(orders).map(order => (
                   <tr key={order.id}>
                     <td>
                       <strong>#{order.id}</strong>
@@ -206,6 +243,11 @@ const SellerDashboard = () => {
                     <td>{order.vehicleNo}</td>
                     <td>{order.tireBrand || 'Standard Tire'}</td>
                     <td>{order.quantity} tires</td>
+                    <td>
+                      {order.orderDate ? new Date(order.orderDate).toLocaleDateString('en-CA') : 
+                       order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-CA') : 
+                       order.submittedDate ? new Date(order.submittedDate).toLocaleDateString('en-CA') : 'N/A'}
+                    </td>
                     <td>
                       <span 
                         className="status-badge"
