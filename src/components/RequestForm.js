@@ -394,14 +394,19 @@ function RequestForm() {
   const submitWithRetry = async (formDataToSend, isUpdate = false, retryCount = 0) => {
     const maxRetries = 2;
     try {
+      const timeoutMs = retryCount === 0 ? 120000 : 180000;
+      console.log(`🚀 Starting ${isUpdate ? 'update' : 'submit'} request with ${timeoutMs/1000}s timeout (attempt ${retryCount + 1})`);
+      
       const config = {
         headers: { 'Content-Type': 'multipart/form-data' },
-        timeout: retryCount === 0 ? 120000 : 180000, // Longer timeout on retry
+        timeout: timeoutMs,
         onUploadProgress: (progressEvent) => {
           const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
           console.log(`Upload progress: ${percentCompleted}%`);
         }
       };
+      
+      console.log('📡 Request config:', { timeout: config.timeout, url: isUpdate ? `${API_URL}/${editingId}` : API_URL });
 
       if (isUpdate) {
         return await axios.put(`${API_URL}/${editingId}`, formDataToSend, config);

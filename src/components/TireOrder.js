@@ -38,11 +38,21 @@ function TireOrder() {
 
   const fetchOrders = async () => {
     try {
-      const res = await axios.get(API_URL);
+      const config = {
+        timeout: 60000, // 1 minute for GET requests
+      };
+      
+      console.log('TireOrder fetchOrders with config:', config);
+      const res = await axios.get(API_URL, config);
       setOrders(res.data);
     } catch (err) {
       console.error('Error fetching orders:', err);
-      alert('Failed to fetch orders.');
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        console.log('Fetch orders timed out - backend might be cold starting');
+        // Don't show alert for fetch timeout, just log it
+      } else {
+        alert('Failed to fetch orders.');
+      }
     }
   };
 
@@ -111,20 +121,34 @@ function TireOrder() {
       status: 'pending',
     };
 
+    // Extended timeout configuration for order submissions
+    const config = {
+      timeout: 120000, // 2 minutes timeout
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    };
+
+    console.log('TireOrder submission with config:', config);
+
     try {
       let response;
       if (editingId) {
-        response = await axios.put(`${API_URL}/${editingId}`, payload);
+        response = await axios.put(`${API_URL}/${editingId}`, payload, config);
         if (response.status === 200) alert('Order updated successfully!');
       } else {
-        response = await axios.post(API_URL, payload);
+        response = await axios.post(API_URL, payload, config);
         if ([200, 201].includes(response.status)) alert('Order created successfully!');
       }
       resetForm();
       fetchOrders();
     } catch (err) {
       console.error('Error submitting order:', err.response?.data || err.message || err);
-      alert('Failed to submit order. Please try again.');
+      if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+        alert('Request timed out. The backend server might be starting up. Please try again in a few moments.');
+      } else {
+        alert('Failed to submit order. Please try again.');
+      }
     }
     setLoading(false);
   };
@@ -145,12 +169,21 @@ function TireOrder() {
   const handleDelete = async (id) => {
     if (window.confirm('Are you sure you want to delete this order?')) {
       try {
-        await axios.delete(`${API_URL}/${id}`);
+        const config = {
+          timeout: 30000, // 30 seconds for delete
+        };
+        
+        console.log('TireOrder delete with config:', config);
+        await axios.delete(`${API_URL}/${id}`, config);
         alert('Order deleted successfully.');
         fetchOrders();
       } catch (err) {
         console.error('Error deleting order:', err);
-        alert('Failed to delete order.');
+        if (err.code === 'ECONNABORTED' || err.message?.includes('timeout')) {
+          alert('Delete request timed out. Please check if the order was deleted and try again if needed.');
+        } else {
+          alert('Failed to delete order.');
+        }
       }
     }
   };
