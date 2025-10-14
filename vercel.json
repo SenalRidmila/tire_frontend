@@ -2,43 +2,43 @@
   "rewrites": [
     { 
       "source": "/api/auth/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/auth/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/auth/$1"
     },
     { 
       "source": "/api/employees/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/employees/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/employees/$1"
     },
     { 
       "source": "/api/send-email", 
-      "destination": "https://tirebackend-production.up.railway.app/api/send-email"
+      "destination": "https://tire-backend-58a9.onrender.com/api/send-email"
     },
     { 
       "source": "/api/notifications/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/notifications/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/notifications/$1"
     },
     { 
       "source": "/api/mail/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/mail/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/mail/$1"
     },
     { 
       "source": "/api/tire-requests/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/tire-requests/$1"
     },
     { 
       "source": "/api/tire-requests", 
-      "destination": "https://tirebackend-production.up.railway.app/api/tire-requests"
+      "destination": "https://tire-backend-58a9.onrender.com/api/tire-requests"
     },
     { 
       "source": "/api/tire-orders/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/api/tire-orders/$1"
     },
     { 
       "source": "/api/tire-orders", 
-      "destination": "https://tirebackend-production.up.railway.app/api/tire-orders"
+      "destination": "https://tire-backend-58a9.onrender.com/api/tire-orders"
     },
     { 
       "source": "/uploads/(.*)", 
-      "destination": "https://tirebackend-production.up.railway.app/uploads/$1"
+      "destination": "https://tire-backend-58a9.onrender.com/uploads/$1"
     },
     { 
       "source": "/images/(.*)", 
@@ -58,6 +58,6 @@
     }
   ],
   "env": {
-    "REACT_APP_API_URL": "https://tirebackend-production.up.railway.app"
+    "REACT_APP_API_URL": "https://tire-backend-58a9.onrender.com"
   }
 }

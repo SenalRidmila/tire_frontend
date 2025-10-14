@@ -24,7 +24,7 @@ function ViewProfile() {
         console.log('🔍 Fetching employee data from MongoDB for ID:', employeeId);
         
         // Try MongoDB employee collection via Railway backend
-        const response = await fetch(`https://tirebackend-production.up.railway.app/api/employees/${employeeId}`, {
+        const response = await fetch(`https://tire-backend-58a9.onrender.com/api/employees/${employeeId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json',

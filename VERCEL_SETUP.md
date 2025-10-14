@@ -11,7 +11,7 @@
 
 | Variable Name | Value | Environment |
 |---------------|-------|-------------|
-| `REACT_APP_API_URL` | `https://tirebackend-production.up.railway.app` | Production |
+| `REACT_APP_API_URL` | `https://tire-backend-58a9.onrender.com` | Production |
 | `REACT_APP_AZURE_CLIENT_ID` | `YOUR_ACTUAL_CLIENT_ID` | Production |
 | `REACT_APP_AZURE_AUTHORITY` | `https://login.microsoftonline.com/common` | Production |
 | `REACT_APP_REDIRECT_URI` | `https://tire-slt.vercel.app` | Production |

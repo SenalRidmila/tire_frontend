@@ -52,7 +52,7 @@ function ManagerDashboard() {
       console.log('🔍 Manager Dashboard: Fetching tire requests from MongoDB...');
       
       // Try MongoDB tire_requests collection via Railway backend
-      const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+      const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -72,14 +72,14 @@ function ManagerDashboard() {
             // If already a full URL, use as is
             if (photoUrl.startsWith('http')) return photoUrl;
             
-            // If it's a relative path, construct full Railway URL
+            // If it's a relative path, construct full Render URL
             if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
               const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
-              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+              return `https://tire-backend-58a9.onrender.com/uploads/${cleanPath}`;
             }
             
             // If it's just a filename, add the full path
-            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+            return `https://tire-backend-58a9.onrender.com/uploads/${photoUrl}`;
           }) : []
         }));
         
@@ -296,12 +296,12 @@ function ManagerDashboard() {
                         
                         // Handle relative paths from MongoDB
                         if (originalUrl.startsWith('/uploads/')) {
-                          return `https://tirebackend-production.up.railway.app${originalUrl}`;
+                          return `https://tire-backend-58a9.onrender.com${originalUrl}`;
                         }
                         
                         // Handle direct filenames from MongoDB
                         if (!originalUrl.startsWith('/')) {
-                          return `https://tirebackend-production.up.railway.app/uploads/${originalUrl}`;
+                          return `https://tire-backend-58a9.onrender.com/uploads/${originalUrl}`;
                         }
                         
                         // Fallback to BASE_URL for legacy data
@@ -330,12 +330,12 @@ function ManagerDashboard() {
                             if (!e.target.dataset.managerFallbackLevel) {
                               e.target.dataset.managerFallbackLevel = '1';
                               
-                              // Level 1: Try direct Railway backend URL
+                              // Level 1: Try direct Render backend URL
                               const filename = url.split('/').pop().split('?')[0];
-                              const railwayUrl = `https://tirebackend-production.up.railway.app/uploads/${filename}`;
+                              const renderUrl = `https://tire-backend-58a9.onrender.com/uploads/${filename}`;
                               
-                              console.log(`🔄 Manager Dashboard Level 1 fallback: ${railwayUrl}`);
-                              e.target.src = railwayUrl;
+                              console.log(`🔄 Manager Dashboard Level 1 fallback: ${renderUrl}`);
+                              e.target.src = renderUrl;
                               
                             } else if (e.target.dataset.managerFallbackLevel === '1') {
                               e.target.dataset.managerFallbackLevel = '2';

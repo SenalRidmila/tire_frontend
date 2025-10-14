@@ -47,7 +47,7 @@ function EngineerDashboard() {
       console.log('🔍 Engineer Dashboard: Fetching tire requests from MongoDB...');
       
       // Try MongoDB tire_requests collection via Railway backend (same as TTO Dashboard)
-      const response = await fetch('https://tirebackend-production.up.railway.app/api/tire-requests', {
+      const response = await fetch('https://tire-backend-58a9.onrender.com/api/tire-requests', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -67,28 +67,28 @@ function EngineerDashboard() {
             // If already a full URL, use as is
             if (photoUrl.startsWith('http')) return photoUrl;
             
-            // If it's a relative path, construct full Railway URL
+            // If it's a relative path, construct full Render URL
             if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
               const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
-              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+              return `https://tire-backend-58a9.onrender.com/uploads/${cleanPath}`;
             }
             
             // If it's just a filename, add the full path
-            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+            return `https://tire-backend-58a9.onrender.com/uploads/${photoUrl}`;
           }) : [],
           // Map tirePhotoUrls to photos for table display compatibility
           photos: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
             // If already a full URL, use as is
             if (photoUrl.startsWith('http')) return photoUrl;
             
-            // If it's a relative path, construct full Railway URL
+            // If it's a relative path, construct full Render URL
             if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
               const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
-              return `https://tirebackend-production.up.railway.app/uploads/${cleanPath}`;
+              return `https://tire-backend-58a9.onrender.com/uploads/${cleanPath}`;
             }
             
             // If it's just a filename, add the full path
-            return `https://tirebackend-production.up.railway.app/uploads/${photoUrl}`;
+            return `https://tire-backend-58a9.onrender.com/uploads/${photoUrl}`;
           }) : []
         }));
         

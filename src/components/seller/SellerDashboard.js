@@ -9,7 +9,7 @@ const SellerDashboard = () => {
   const [error, setError] = useState(null);
 
   const API_URL = process.env.NODE_ENV === 'production' 
-    ? 'https://tirebackend-production.up.railway.app/api'
+    ? 'https://tire-backend-58a9.onrender.com/api'
     : '/api';
 
   useEffect(() => {
