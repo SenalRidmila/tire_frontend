@@ -3,6 +3,9 @@ const API_CONFIG = {
   // Base URL - automatically detects environment
   BASE_URL: process.env.REACT_APP_API_URL || 'http://localhost:8080',
   
+  // Production backend URL - direct connection to avoid Vercel proxy issues
+  PRODUCTION_BACKEND: 'https://tire-backend-58a9.onrender.com',
+  
   // API endpoints
   ENDPOINTS: {
     TIRE_REQUESTS: '/api/tire-requests',
@@ -20,8 +23,8 @@ export const getApiUrl = (endpoint) => {
     return `${API_CONFIG.BASE_URL}${endpoint}`;
   }
   
-  // In production, use relative path (handled by Vercel proxy)
-  return endpoint;
+  // In production, use direct backend URL to avoid Vercel proxy timeout issues
+  return `${API_CONFIG.PRODUCTION_BACKEND}${endpoint}`;
 };
 
 // Export configuration
