@@ -115,6 +115,9 @@ function RequestForm() {
             id: req._id || req.id,
             // Handle tire photo URLs using configured base URL
             tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
+              // If it's a base64 data URL, use as is
+              if (photoUrl.startsWith('data:')) return photoUrl;
+              
               // If already a full URL, use as is
               if (photoUrl.startsWith('http')) return photoUrl;
               
@@ -646,7 +649,14 @@ function RequestForm() {
     });
     setEditingId(req.id);
     if (req.tirePhotoUrls?.length > 0) {
-      setPreviewUrls(req.tirePhotoUrls.map(url => url.startsWith('http') ? url : `${BASE_URL}${url}`));
+      setPreviewUrls(req.tirePhotoUrls.map(url => {
+        // Handle base64 data URLs
+        if (url.startsWith('data:')) return url;
+        // Handle full HTTP URLs
+        if (url.startsWith('http')) return url;
+        // Handle relative URLs
+        return `${BASE_URL}${url}`;
+      }));
     } else {
       setPreviewUrls([]);
     }
