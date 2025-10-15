@@ -114,21 +114,31 @@ function RequestForm() {
             ...req,
             id: req._id || req.id,
             // Handle tire photo URLs using configured base URL
-            tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map(photoUrl => {
-              // If it's a base64 data URL, use as is
+            tirePhotoUrls: req.tirePhotoUrls ? req.tirePhotoUrls.map((photoUrl, idx) => {
+              // If it's a base64 data URL, use as is (preferred method)
               if (photoUrl.startsWith('data:')) return photoUrl;
               
-              // If already a full URL, use as is
+              // If it's already a demo image path, use as is
+              if (photoUrl.startsWith('/images/')) return photoUrl;
+              
+              // If already a full URL, try it but expect it might fail on production
               if (photoUrl.startsWith('http')) return photoUrl;
               
-              // If it's a relative path, construct URL using BASE_URL
+              // For file-based URLs, these likely won't exist on production Render deployment
+              // We'll try them but the error handler will fallback to demo images
               if (photoUrl.startsWith('/uploads/') || photoUrl.startsWith('uploads/')) {
                 const cleanPath = photoUrl.replace(/^\/uploads\/|^uploads\//, '');
                 return getApiUrl(`/uploads/${cleanPath}`);
               }
               
-              // If it's just a filename, add the full path
-              return getApiUrl(`/uploads/${photoUrl}`);
+              // If it's just a filename, try the upload path but expect fallback
+              if (photoUrl && !photoUrl.startsWith('/')) {
+                return getApiUrl(`/uploads/${photoUrl}`);
+              }
+              
+              // Ultimate fallback to demo images
+              const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
+              return demoImages[idx % demoImages.length];
             }) : []
           }));
           
@@ -823,24 +833,27 @@ function RequestForm() {
                       const getImageUrl = (originalUrl) => {
                         if (!originalUrl) return null;
                         
-                        // If it's a base64 data URL, use as is
+                        // If it's a base64 data URL, use as is (highest priority)
                         if (originalUrl.startsWith('data:')) return originalUrl;
                         
                         // If already a full HTTP URL from MongoDB, use as is
                         if (originalUrl.startsWith('http')) return originalUrl;
                         
-                        // Handle relative paths from MongoDB
+                        // For demo/placeholder images, use as is
+                        if (originalUrl.startsWith('/images/')) return originalUrl;
+                        
+                        // Handle relative paths from MongoDB - but these might not exist on production
                         if (originalUrl.startsWith('/uploads/')) {
                           return getApiUrl(originalUrl);
                         }
                         
-                        // Handle direct filenames from MongoDB
+                        // Handle direct filenames from MongoDB - these are likely ephemeral on cloud
                         if (!originalUrl.startsWith('/')) {
                           return getApiUrl(`/uploads/${originalUrl}`);
                         }
                         
-                        // Fallback to demo images for development
-                        return originalUrl.startsWith('/images/') ? originalUrl : `/images/${originalUrl}`;
+                        // Ultimate fallback to demo images
+                        return `/images/tire${(Math.floor(Math.random() * 3) + 1)}.jpeg`;
                       };
                       
                       const imageUrl = getImageUrl(url);
@@ -893,7 +906,7 @@ function RequestForm() {
                             } else if (e.target.dataset.fallbackLevel === '2') {
                               e.target.dataset.fallbackLevel = '3';
                               
-                              // Level 3: Try demo images
+                              // Level 3: Use demo images immediately (files likely don't exist on production)
                               const demoImages = ['/images/tire1.jpeg', '/images/tire2.jpeg', '/images/tire3.jpeg'];
                               const demoUrl = demoImages[idx % demoImages.length];
                               
