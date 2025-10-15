@@ -498,16 +498,8 @@ function RequestForm() {
         setSubmitSuccess('✅ Request submitted successfully! Your tire request has been sent to the manager for approval.');
         alert('✅ Request submitted successfully! Your tire request has been sent to the manager for approval.');
         
-        // Send notification email to manager after successful submission (don't block UI)
-        if (response.data) {
-          console.log('📧 Sending email notification to manager...');
-          sendManagerNotification(response.data).then(() => {
-            console.log('✅ Manager notification email sent successfully');
-          }).catch(emailError => {
-            console.warn('❌ Email notification failed:', emailError);
-            // Don't show error to user since request was submitted successfully
-          });
-        }
+        // Email notification is now handled automatically by the backend
+        console.log('📧 Email notification will be sent automatically by backend service');
       }
       
       // Refresh the requests list and reset form
@@ -544,83 +536,7 @@ function RequestForm() {
     }
   };
 
-  // Send email notification to manager
-  const sendManagerNotification = async (requestData) => {
-    try {
-      const managerEmail = 'slthrmanager@gmail.com'; // Manager email
-      // Use production Vercel URL instead of localhost
-      const dashboardLink = `https://tire-frontend.vercel.app/manager?requestId=${requestData.id}`;
-      
-      const emailData = {
-        to: managerEmail,
-        subject: `New Tire Request Submitted - ${requestData.vehicleNo}`,
-        html: `
-          <h2>🚗 New Tire Request Notification</h2>
-          <p>A new tire replacement request has been submitted and requires your approval.</p>
-          
-          <div style="background: #f8f9fa; padding: 15px; border-radius: 5px; margin: 15px 0;">
-            <h3>Request Details:</h3>
-            <p><strong>Vehicle Number:</strong> ${requestData.vehicleNo}</p>
-            <p><strong>Vehicle Type:</strong> ${requestData.vehicleType}</p>
-            <p><strong>Brand/Model:</strong> ${requestData.vehicleBrand} ${requestData.vehicleModel}</p>
-            <p><strong>Section:</strong> ${requestData.userSection}</p>
-            <p><strong>Tire Size:</strong> ${requestData.tireSize}</p>
-            <p><strong>Number of Tires:</strong> ${requestData.noOfTires}</p>
-            <p><strong>Number of Tubes:</strong> ${requestData.noOfTubes}</p>
-            <p><strong>Present KM:</strong> ${requestData.presentKm}</p>
-            <p><strong>Officer Service No:</strong> ${requestData.officerServiceNo}</p>
-            <p><strong>Comments:</strong> ${requestData.comments || 'None'}</p>
-          </div>
-          
-          <div style="text-align: center; margin: 20px 0;">
-            <a href="${dashboardLink}" 
-               style="background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              🔍 Review Request in Manager Dashboard
-            </a>
-          </div>
-          
-          <p style="color: #666; font-size: 12px;">
-            Click the button above to access the Manager Dashboard and approve or reject this request.
-          </p>
-        `
-      };
-
-      // Try to send email through backend (using proper API URLs)
-      const emailEndpoints = [
-        `${getApiUrl('/api/send-email')}`,
-        `${getApiUrl('/api/notifications/email')}`,
-        `${getApiUrl('/api/mail/send')}`
-      ];
-
-      let emailSent = false;
-      for (const endpoint of emailEndpoints) {
-        try {
-          await axios.post(endpoint, emailData);
-          console.log(`✅ Email sent successfully via: ${endpoint}`);
-          emailSent = true;
-          break;
-        } catch (error) {
-          console.log(`❌ Failed email endpoint: ${endpoint}`, error.response?.status);
-          continue;
-        }
-      }
-
-      if (!emailSent) {
-        console.log('📧 Email notification simulated (backend unavailable)');
-        // Show notification in console for development
-        console.log('MANAGER EMAIL NOTIFICATION:', {
-          to: managerEmail,
-          subject: emailData.subject,
-          dashboardLink: dashboardLink,
-          requestData: requestData
-        });
-      }
-
-    } catch (error) {
-      console.error('Email notification error:', error);
-      // Don't fail the request submission if email fails
-    }
-  };
+  // Email notifications are now handled automatically by the backend service
 
   const resetForm = () => {
     setFormData({
